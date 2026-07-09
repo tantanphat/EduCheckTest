@@ -3,208 +3,235 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EduCheck Pro — Gemini 2.5 Flash</title>
+    <title>EduCheck Pro — Windows Style</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: { sans: ['"Segoe UI"', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif'] },
                     colors: {
-                        primary: '#2563EB',
-                        success: '#10B981',
-                        warning: '#F59E0B',
-                        danger: '#EF4444',
+                        primary: '#0078D4',
+                        success: '#107C10',
+                        warning: '#D83B01',
+                        danger: '#E81123',
+                        winbg: '#F3F3F3',
+                        winborder: '#CCCCCC'
                     }
                 }
             }
         }
     </script>
     <style>
-        .highlight-success { background-color: rgba(16, 185, 129, 0.2); border-bottom: 2px solid #10B981; transition: all 0.3s ease; }
-        .highlight-warning { background-color: rgba(245, 158, 11, 0.2); border-bottom: 2px solid #F59E0B; transition: all 0.3s ease; }
-        .highlight-danger { background-color: rgba(239, 68, 68, 0.2); border-bottom: 2px solid #EF4444; transition: all 0.3s ease; }
-        .raw-text { transition: all 0.3s ease; cursor: pointer; }
-        .raw-text:hover { font-weight: 600; }
-        .slide-in { animation: slideIn 0.3s ease-out forwards; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2563EB; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background-color: #c1c1c1; border-radius: 0; border: 2px solid #f1f1f1; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #a8a8a8; }
+        
+        .highlight-success { background-color: rgba(16, 124, 16, 0.15); border-bottom: 2px solid #107C10; transition: all 0.2s ease; }
+        .highlight-warning { background-color: rgba(234, 179, 8, 0.15); border-bottom: 2px solid #EAB308; transition: all 0.2s ease; }
+        .highlight-danger { background-color: rgba(232, 17, 35, 0.15); border-bottom: 2px solid #E81123; transition: all 0.2s ease; }
+        .raw-text { transition: all 0.2s ease; cursor: text; }
+        .raw-text:hover { background-color: rgba(0, 0, 0, 0.05); }
+        
+        .slide-in { animation: slideIn 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        
+        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #0078D4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        textarea::-webkit-scrollbar { width: 8px; }
-        textarea::-webkit-scrollbar-track { background: transparent; }
-        textarea::-webkit-scrollbar-thumb { background-color: #6b7280; border-radius: 20px; border: 3px solid #343541; }
-        #stream-preview { max-height: 240px; overflow-y: auto; font-family: 'Inter', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
-        #stream-preview::-webkit-scrollbar { width: 5px; }
-        #stream-preview::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .status-dot.idle { background: #9ca3af; }
-        .status-dot.streaming { background: #3b82f6; animation: pulse-dot 1s ease-in-out infinite; }
-        .status-dot.done { background: #22c55e; }
-        .status-dot.error { background: #ef4444; }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
-        .error-detail { background: #fef2f2; border-left: 4px solid #ef4444; padding: 0.75rem 1rem; border-radius: 4px; margin: 0.5rem 0; font-size: 0.9rem; }
+        
+        .win-shadow { box-shadow: 0 4px 16px rgba(0,0,0,0.15), 0 0 2px rgba(0,0,0,0.2); }
+        .win-dialog-shadow { box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 2px rgba(0,0,0,0.3); }
+        
+        .win-btn { border: 1px solid transparent; transition: all 0.1s; }
+        .win-btn:active { transform: scale(0.98); }
+        
+        .fade-in { animation: fadeIn 0.15s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @keyframes hintPulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 120, 212, 0.5); background-color: rgba(0, 120, 212, 0.1); }
+            70% { box-shadow: 0 0 0 6px rgba(0, 120, 212, 0); background-color: transparent; }
+            100% { box-shadow: 0 0 0 0 rgba(0, 120, 212, 0); background-color: transparent; }
+        }
+        .hint-glow { animation: hintPulse 1.5s infinite; border-radius: 4px; }
+
+        @keyframes warningPulse {
+            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5); background-color: rgba(234, 179, 8, 0.1); }
+            70% { box-shadow: 0 0 0 8px rgba(234, 179, 8, 0); background-color: rgba(234, 179, 8, 0.15); }
+            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); background-color: rgba(234, 179, 8, 0.1); }
+        }
+        .warning-glow { animation: warningPulse 1.5s infinite; }
     </style>
 </head>
-<body class="bg-gray-200 h-screen w-full flex items-center justify-center font-sans overflow-hidden">
+<body class="bg-[#d9d9d9] h-screen w-full flex items-center justify-center font-sans overflow-hidden">
 
-    <div class="w-11/12 max-w-7xl h-[90vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden relative border border-gray-300">
-        <div class="h-12 bg-gray-100 flex items-center px-4 border-b border-gray-300 flex-shrink-0">
-            <div class="flex space-x-2">
-                <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+    <div class="w-11/12 max-w-7xl h-[90vh] bg-white border border-gray-400 win-shadow flex flex-col overflow-hidden relative">
+        
+        <div class="h-10 bg-[#e3e3e3] flex items-center px-2 border-b border-gray-300 flex-shrink-0 select-none">
+            <div class="flex gap-1 h-full pt-1">
+                <div class="bg-white rounded-t-md px-4 flex items-center gap-2 border-x border-t border-gray-300 text-xs text-gray-800 shadow-sm relative top-[1px]">
+                    <span class="material-icons-round text-[14px]">public</span> Nhóm 10 điểm
+                </div>
             </div>
-            <div class="mx-auto bg-white px-32 py-1 rounded-md text-sm text-gray-500 shadow-sm flex items-center">
-                <span class="material-icons-round text-sm mr-2">lock</span> Nhóm 10 điểm
-            </div>
-            <button id="toggleExtBtn" class="ml-auto p-1.5 hover:bg-gray-200 rounded-md transition relative group" title="Mở EduCheck">
-                <span class="material-icons-round text-primary">verified_user</span>
+            
+            <button id="toggleExtBtn" class="ml-auto px-3 py-1 hover:bg-[#c9c9c9] transition relative group rounded-sm" title="Mở EduCheck">
+                <span class="material-icons-round text-primary text-lg">verified_user</span>
             </button>
         </div>
 
-        <div class="flex-1 flex relative overflow-hidden bg-[#343541]">
+        <div class="flex-1 flex relative overflow-hidden bg-[#202020]">
             <div class="flex-1 flex flex-col items-center pt-8 overflow-y-auto px-4 pb-20 w-full">
+                
                 <div class="w-full max-w-4xl flex mb-6">
-                    <div class="w-8 h-8 rounded-sm bg-blue-500 flex items-center justify-center text-white font-bold mr-4 flex-shrink-0">U</div>
-                    <div class="text-gray-100 pt-1 w-full font-medium">
+                    <div class="w-8 h-8 bg-[#0078D4] flex items-center justify-center text-white font-semibold mr-4 flex-shrink-0 border border-[#005a9e]">U</div>
+                    <div class="text-gray-200 pt-1 w-full font-medium text-sm">
                         Bạn có thể dán (paste) bất kỳ đoạn văn bản nào sinh ra từ AI vào ô bên dưới, sau đó dùng EduCheck để kiểm chứng.
                     </div>
                 </div>
 
-                <div class="w-full max-w-4xl flex bg-[#444654] p-6 rounded-md shadow-sm relative">
-                    <div class="w-8 h-8 rounded-sm bg-emerald-600 flex items-center justify-center text-white font-bold mr-4 flex-shrink-0">
+                <div class="w-full max-w-4xl flex bg-[#2d2d2d] border border-[#404040] p-6 shadow-sm relative">
+                    <div class="w-8 h-8 bg-[#107C10] flex items-center justify-center text-white font-bold mr-4 flex-shrink-0 border border-[#0b5c0b]">
                         <span class="material-icons-round text-sm">smart_toy</span>
                     </div>
                     <div class="w-full relative">
-                        <textarea id="ai-input" class="w-full h-80 bg-transparent text-gray-100 resize-none outline-none leading-relaxed text-[15px]" placeholder="Dán nội dung từ AI vào đây... (Ví dụ: Hãy kể cho tôi về sự phát triển của in 3D trong y tế...)">Công nghệ in 3D sinh học (bioprinting) cho phép tạo ra các cấu trúc mô nhân tạo bằng mực sinh học.
-Theo báo cáo của WHO năm 2023, thị trường in 3D y tế đã đạt 15.4 tỷ USD và sẽ thay thế hoàn toàn việc hiến tạng vào năm 2030.
-Vào năm 2022, bệnh viện Mount Sinai đã thực hiện ca ghép gan nhân tạo in 3D đầu tiên thành công trên người.</textarea>
+                        <textarea id="ai-input" class="w-full h-80 bg-transparent text-gray-200 resize-none outline-none leading-relaxed text-[15px]"></textarea>
 
-                        <div id="ai-output-parsed" class="hidden text-gray-100 leading-relaxed text-[15px] space-y-2"></div>
+                        <div id="ai-output-parsed" class="hidden text-gray-200 leading-relaxed text-[15px] space-y-2 outline-none" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
 
-                        <div id="stream-preview-wrapper" class="hidden w-full">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="status-dot streaming" id="stream-status-dot"></span>
-                                <span class="text-xs font-medium text-blue-300" id="stream-status-label">Đang chờ AI xử lý...</span>
-                                <span class="text-[10px] text-gray-500 ml-auto" id="stream-token-count">0 tokens</span>
+                        <div id="stream-preview-wrapper" class="hidden w-full mt-4">
+                            <div class="flex items-center gap-2 mb-2 border-b border-[#404040] pb-2">
+                                <span class="material-icons-round text-[#0078D4] text-sm animate-pulse">sync</span>
+                                <span class="text-xs font-semibold text-[#0078D4]" id="stream-status-label">Đang chờ AI xử lý...</span>
+                                <span class="text-[11px] text-gray-400 ml-auto" id="stream-token-count">0 tokens</span>
                             </div>
-                            <div id="stream-preview" class="text-gray-200 text-sm font-mono bg-[#1e1f2b] p-3 rounded border border-gray-600"></div>
+                            <div id="stream-preview" class="text-gray-300 text-[13px] font-mono bg-[#1e1e1e] p-3 border border-[#333]"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="extension-panel" class="absolute top-4 right-4 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden slide-in" style="height: calc(100% - 30px);">
-                <div class="bg-blue-600 text-white p-4 flex items-center justify-between shadow-md z-10">
-                    <div class="flex items-center gap-2">
-                        <span class="material-icons-round text-xl">verified_user</span>
-                        <h2 class="font-bold text-lg">EduCheck</h2>
+            <!-- NHÃN CẢNH BÁO – chỉ hiện sau lần chỉnh sửa thứ 2 trở đi (sau khi đã phân tích) -->
+            <div id="edit-warning-label" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 hidden items-center gap-2 px-5 py-2.5 border border-[#EAB308] text-[#EAB308] text-[13px] font-medium rounded shadow-lg backdrop-blur-sm transition-all duration-300">
+                <span class="material-icons-round text-[18px]">info</span>
+                Nội dung yêu cầu để kiểm chứng đã bị chỉnh sửa
+            </div>
+
+            <div id="extension-panel" class="absolute top-4 right-4 w-96 bg-[#f3f3f3] win-shadow border border-[#ccc] flex flex-col overflow-hidden slide-in rounded-sm" style="height: calc(100% - 30px); display: none;">
+                <div class="bg-white border-b border-[#ccc] p-3 flex items-center justify-between z-10">
+                    <div class="flex items-center gap-2 text-[#0078D4]">
+                        <span class="material-icons-round text-lg">verified_user</span>
+                        <h2 class="font-semibold text-[15px] text-black">EduCheck Pro</h2>
                     </div>
-                    <button id="closeExt" class="text-blue-100 hover:text-white transition">
-                        <span class="material-icons-round">close</span>
+                    <button id="closeExt" class="text-gray-500 hover:text-black hover:bg-[#e5e5e5] p-1 transition-colors">
+                        <span class="material-icons-round text-[18px] block">close</span>
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto bg-gray-50 flex flex-col">
+                <div class="flex-1 overflow-y-auto flex flex-col">
                     <div id="state-intro" class="p-5 flex flex-col gap-4">
-                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-sm">
-                            <h4 class="font-bold text-blue-800 mb-1 flex items-center">
-                                <span class="material-icons-round text-sm mr-1">vpn_key</span> Cấu hình API
+                        <div class="bg-white p-4 border border-[#e5e5e5] shadow-sm">
+                            <h4 class="font-semibold text-gray-800 mb-2 flex items-center text-sm">
+                                <span class="material-icons-round text-[16px] mr-2 text-[#0078D4]">vpn_key</span> Cấu hình API
                             </h4>
-                            <p class="text-blue-600 text-xs mb-2">Nhập Gemini API Key của bạn.</p>
-                            <input type="password" id="gemini-key" class="w-full text-xs p-2 border rounded outline-none focus:border-blue-500" placeholder="Dán Gemini API Key của bạn vào đây" />
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-500 hover:underline mt-1 inline-block">Lấy Key miễn phí tại đây</a>
-                            <div class="mt-2 text-[10px] text-gray-500 flex items-center gap-1">
-                                <span class="material-icons-round text-[14px]">info</span>
-                                Model đang dùng: <strong>gemini-2.5-flash</strong>
+                            <p class="text-gray-600 text-[12px] mb-3">Vui lòng cung cấp Gemini API Key để bắt đầu kiểm chứng.</p>
+                            <input type="password" id="gemini-key" class="w-full text-[13px] p-2 border border-[#ccc] outline-none focus:border-[#0078D4] focus:ring-1 focus:ring-[#0078D4] bg-white transition-all rounded-sm" placeholder="Nhập API Key tại đây..." />
+                            <div class="flex justify-between items-center mt-2">
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-[#0078D4] hover:underline">Lấy Key miễn phí</a>
+                                <span class="text-[11px] text-gray-500">Model: gemini-2.5-flash</span>
                             </div>
-                            <div id="api-error-detail" class="hidden error-detail text-xs"></div>
+                            <div id="api-error-detail" class="hidden text-[12px] text-[#E81123] mt-2 bg-[#FDE7E9] p-2 border border-[#F9D0C4]"></div>
                         </div>
 
-                        <div class="text-center py-4">
-                            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span class="material-icons-round text-3xl">troubleshoot</span>
-                            </div>
-                            <h3 class="font-bold text-gray-800 mb-2">Sẵn sàng kiểm chứng!</h3>
-                            <button id="btn-scan" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
-                                <span class="material-icons-round">bolt</span>
-                                1-Click Fact-Check
+                        <div class="text-center py-6 mt-4">
+                            <button id="btn-scan" class="w-full win-btn bg-[#0078D4] hover:bg-[#006cbd] text-white font-medium text-sm py-2.5 px-4 shadow-sm flex items-center justify-center gap-2 rounded-sm">
+                                <span class="material-icons-round text-[18px]">policy</span>
+                                Kiểm chứng văn bản
                             </button>
                         </div>
                     </div>
 
                     <div id="state-scanning" class="hidden flex-col h-full p-5">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                                <span class="loader w-4 h-4 border-2"></span>
+                        <div class="flex items-center justify-between mb-3 border-b border-[#ccc] pb-2">
+                            <h3 class="font-semibold text-gray-800 flex items-center gap-2 text-sm">
+                                <span class="loader border-[#ccc] border-t-[#0078D4] w-4 h-4 border-2"></span>
                                 Đang phân tích...
                             </h3>
-                            <button id="btn-abort" class="text-xs text-red-500 hover:underline flex items-center">
-                                <span class="material-icons-round text-[14px]">cancel</span> Hủy
+                            <button id="btn-abort" class="text-[12px] text-[#E81123] hover:underline flex items-center">
+                                Hủy bỏ
                             </button>
                         </div>
-                        <div class="bg-[#1e1f2b] rounded-lg border border-gray-700 p-3 flex-1 overflow-hidden flex flex-col">
-                            <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                                <span class="status-dot streaming"></span>
-                                <span id="stream-status-label2">Đang chờ AI xử lý...</span>
-                            </div>
-                            <div id="stream-preview2" class="text-gray-200 text-xs font-mono flex-1 overflow-y-auto whitespace-pre-wrap break-words leading-relaxed text-center flex items-center justify-center italic text-gray-500">
-                                Đang gọi dữ liệu từ API chuẩn...
+                        <div class="bg-[#202020] border border-[#444] p-3 flex-1 flex flex-col overflow-hidden rounded-sm">
+                            <div class="flex flex-col items-center justify-center h-full gap-3">
+                                <span class="material-icons-round text-[#0078D4] text-3xl animate-pulse">cloud_sync</span>
+                                <div id="stream-preview2" class="text-[#cccccc] text-[13px] font-mono text-center">Đang gọi dữ liệu từ API chuẩn...</div>
                             </div>
                         </div>
                     </div>
 
                     <div id="state-results" class="hidden flex-col h-full p-5">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-gray-800">Kết quả phân tích</h3>
-                            <button id="btn-reset" class="text-xs text-blue-600 hover:underline flex items-center">
-                                <span class="material-icons-round text-[12px] mr-1">refresh</span>Quét lại
+                        <div class="flex items-center justify-between mb-4 border-b border-[#ccc] pb-2">
+                            <h3 class="font-semibold text-gray-800 text-sm">Kết quả phân tích</h3>
+                            <button id="btn-reset" class="text-[12px] text-[#0078D4] hover:underline flex items-center rounded px-1 transition-all">
+                                <span class="material-icons-round text-[14px] mr-1">refresh</span>Quét lại
                             </button>
                         </div>
-                        <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 shadow-sm mb-4">
-                            <div class="text-center flex-1 border-r">
-                                <div id="count-success" class="text-2xl font-bold text-success">0</div>
-                                <div class="text-[10px] text-gray-500 uppercase font-semibold">Đáng tin</div>
+                        <div class="flex bg-white border border-[#e5e5e5] shadow-sm mb-4 rounded-sm">
+                            <div class="text-center flex-1 py-2 border-r border-[#e5e5e5]">
+                                <div id="count-success" class="text-xl font-bold text-[#107C10]">0</div>
+                                <div class="text-[10px] text-gray-500 font-semibold">ĐÁNG TIN</div>
                             </div>
-                            <div class="text-center flex-1 border-r">
-                                <div id="count-warning" class="text-2xl font-bold text-warning">0</div>
-                                <div class="text-[10px] text-gray-500 uppercase font-semibold">Cần chú ý</div>
+                            <div class="text-center flex-1 py-2 border-r border-[#e5e5e5]">
+                                <div id="count-warning" class="text-xl font-bold text-[#EAB308]">0</div>
+                                <div class="text-[10px] text-gray-500 font-semibold">CẦN XÁC MINH</div>
                             </div>
-                            <div class="text-center flex-1">
-                                <div id="count-danger" class="text-2xl font-bold text-danger">0</div>
-                                <div class="text-[10px] text-gray-500 uppercase font-semibold">Bịa đặt</div>
+                            <div class="text-center flex-1 py-2">
+                                <div id="count-danger" class="text-xl font-bold text-[#E81123]">0</div>
+                                <div class="text-[10px] text-gray-500 font-semibold">SAI LỆCH</div>
                             </div>
                         </div>
-                        <div id="cards-container" class="space-y-3 flex-1 overflow-y-auto pr-1 pb-4"></div>
-                        <div class="mt-auto pt-4 border-t border-gray-200 bg-gray-50">
-                            <button id="btn-report" class="w-full bg-gray-800 hover:bg-black text-white font-medium py-2.5 px-4 rounded-lg shadow transition flex items-center justify-center gap-2">
-                                <span class="material-icons-round text-sm">description</span> Xuất Báo Cáo
+                        <div id="cards-container" class="space-y-2 flex-1 overflow-y-auto pr-1 pb-4"></div>
+                        <div class="mt-auto pt-4 border-t border-[#ccc]">
+                            <button id="btn-report" class="w-full win-btn bg-[#2b2b2b] hover:bg-[#1a1a1a] text-white font-medium text-sm py-2 px-4 shadow-sm flex items-center justify-center gap-2 rounded-sm">
+                                <span class="material-icons-round text-[18px]">assessment</span> Xuất Báo Cáo
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="report-modal" class="absolute inset-0 bg-black bg-opacity-60 z-50 hidden items-center justify-center p-6 backdrop-blur-sm">
-                <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden flex flex-col">
-                    <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
-                        <div class="flex items-center gap-2"><span class="material-icons-round">assignment_turned_in</span><h2 class="font-bold">Báo Cáo Liêm Chính AI</h2></div>
-                        <button id="close-modal" class="text-gray-400 hover:text-white"><span class="material-icons-round">close</span></button>
+            <div id="report-modal" class="absolute inset-0 bg-[rgba(0,0,0,0.4)] z-50 hidden items-center justify-center p-6 fade-in">
+                <div class="bg-white w-full max-w-4xl win-dialog-shadow flex flex-col border border-[#999] rounded-sm">
+                    <div class="bg-white px-3 py-2 flex justify-between items-center border-b border-[#e5e5e5]">
+                        <div class="flex items-center gap-2">
+                            <span class="material-icons-round text-[#0078D4] text-[16px]">picture_as_pdf</span>
+                            <span class="text-[12px] text-gray-800">Trình xem trước báo cáo</span>
+                        </div>
+                        <button id="close-modal" class="hover:bg-[#E81123] hover:text-white px-2 py-1 text-gray-600 transition-colors">
+                            <span class="material-icons-round text-[16px] block">close</span>
+                        </button>
                     </div>
-                    <div class="p-8 overflow-y-auto bg-gray-50 flex-1 max-h-[70vh]">
-                        <div class="bg-white p-8 border border-gray-200 shadow-sm mx-auto" style="width:100%;font-family:'Times New Roman',Times,serif;">
+                    
+                    <div class="bg-[#f3f3f3] px-3 py-1.5 border-b border-[#e5e5e5] flex gap-2">
+                        <button id="btn-download-pdf" class="win-btn bg-white border border-[#ccc] hover:bg-[#e5e5e5] px-3 py-1 text-[12px] flex items-center gap-1 shadow-sm rounded-sm">
+                            <span class="material-icons-round text-[14px] text-[#D83B01]">save_alt</span> Lưu thành PDF
+                        </button>
+                    </div>
+
+                    <div class="p-6 overflow-y-auto bg-[#e5e5e5] flex-1 max-h-[65vh]">
+                        <div id="pdf-content" class="bg-white p-10 win-shadow mx-auto" style="width:100%; max-width: 800px; font-family:'Times New Roman',Times,serif;">
                             <div class="text-center mb-6 border-b-2 border-black pb-4">
                                 <h1 class="text-2xl font-bold uppercase">Báo Cáo Rà Soát Liêm Chính Học Thuật</h1>
-                                <p class="text-sm mt-1 text-gray-600">EduCheck · Gemini 1.5 Flash</p>
+                                <p class="text-sm mt-1 text-gray-600">Hệ thống EduCheck Pro</p>
                             </div>
-                            <table class="w-full text-left text-sm border-collapse border border-gray-300 mb-6">
+                            <table class="w-full text-left text-[13px] border-collapse border border-gray-400 mb-6">
                                 <thead>
                                     <tr class="bg-gray-100">
-                                        <th class="border border-gray-300 p-2 w-16 text-center">Trạng thái</th>
-                                        <th class="border border-gray-300 p-2 w-2/5">Đoạn văn bản gốc</th>
-                                        <th class="border border-gray-300 p-2">Đánh giá từ AI Fact-checker</th>
+                                        <th class="border border-gray-400 p-2 w-20 text-center font-bold">Mức độ</th>
+                                        <th class="border border-gray-400 p-2 w-2/5 font-bold">Văn bản trích xuất</th>
+                                        <th class="border border-gray-400 p-2 font-bold">Nhận xét chuyên gia AI</th>
                                     </tr>
                                 </thead>
                                 <tbody id="report-table-body"></tbody>
@@ -214,12 +241,24 @@ Vào năm 2022, bệnh viện Mount Sinai đã thực hiện ca ghép gan nhân 
                 </div>
             </div>
 
-            <div id="alert-modal" class="absolute inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-6">
-                <div class="bg-white w-full max-w-sm rounded-xl p-6 text-center shadow-2xl">
-                    <span class="material-icons-round text-5xl text-red-500 mb-2">error_outline</span>
-                    <h3 id="alert-title" class="text-lg font-bold text-gray-800 mb-2">Lỗi</h3>
-                    <p id="alert-message" class="text-sm text-gray-600 mb-6">Message</p>
-                    <button id="btn-close-alert" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">Đã hiểu</button>
+            <div id="alert-modal" class="absolute inset-0 bg-[rgba(255,255,255,0.2)] z-50 hidden items-center justify-center fade-in">
+                <div class="bg-[#f0f0f0] w-full max-w-sm win-dialog-shadow border border-[#999] flex flex-col font-sans rounded-sm">
+                    <div class="flex justify-between items-center bg-white px-3 py-2 border-b border-[#dfdfdf]">
+                        <div class="text-[12px] text-gray-800" id="alert-window-title">EduCheck Pro</div>
+                        <button id="btn-close-alert-x" class="hover:bg-[#E81123] hover:text-white px-2 py-0.5 text-gray-500 transition-colors">
+                            <span class="material-icons-round text-[16px] block">close</span>
+                        </button>
+                    </div>
+                    <div class="flex items-start gap-4 p-5 bg-white">
+                        <span id="alert-icon" class="material-icons-round text-3xl text-[#0078D4]">info</span>
+                        <div>
+                            <h3 id="alert-title" class="text-[#003399] text-[15px] mb-1">Thông báo</h3>
+                            <p id="alert-message" class="text-[13px] text-gray-700 leading-relaxed">Message</p>
+                        </div>
+                    </div>
+                    <div class="bg-[#f0f0f0] px-4 py-3 flex justify-end border-t border-[#dfdfdf]">
+                        <button id="btn-close-alert" class="win-btn bg-[#e1e1e1] hover:bg-[#d8d8d8] border border-[#adadad] px-6 py-1 text-[13px] text-black focus:outline-none focus:border-[#0078D4] rounded-sm">OK</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -228,6 +267,7 @@ Vào năm 2022, bệnh viện Mount Sinai đã thực hiện ca ghép gan nhân 
     <script type="module">
         import { GoogleGenAI } from "https://esm.sh/@google/genai";
 
+        // DOM elements
         const toggleExtBtn = document.getElementById('toggleExtBtn');
         const extensionPanel = document.getElementById('extension-panel');
         const closeExtBtn = document.getElementById('closeExt');
@@ -244,36 +284,111 @@ Vào năm 2022, bệnh viện Mount Sinai đã thực hiện ca ghép gan nhân 
         const btnAbort = document.getElementById('btn-abort');
         const reportModal = document.getElementById('report-modal');
         const alertModal = document.getElementById('alert-modal');
+        const btnDownloadPdf = document.getElementById('btn-download-pdf');
         const streamPreview = document.getElementById('stream-preview');
         const streamPreview2 = document.getElementById('stream-preview2');
         const streamStatusLabel = document.getElementById('stream-status-label');
-        const streamStatusLabel2 = document.getElementById('stream-status-label2');
         const streamTokenCount = document.getElementById('stream-token-count');
-        const streamDot = document.getElementById('stream-status-dot');
         const apiKeyInput = document.getElementById('gemini-key');
         const errorDetail = document.getElementById('api-error-detail');
+        const editWarningLabel = document.getElementById('edit-warning-label');
 
-        // BẢN CẬP NHẬT: Sử dụng model chuẩn nhất của Google
-        // Lưu ý: "gemini-3.5-flash" không tồn tại, đã đổi về model hợp lệ
         const MODEL_NAME = 'gemini-2.5-flash';
         let isScanning = false;
+        let hasBeenAnalyzed = false;          // Đánh dấu đã có lần phân tích thành công
+        let referenceText = '';               // Văn bản gốc dùng để so sánh
+        let hasWarnedEdit = false;            // Đã hiện cảnh báo cho lần chỉnh sửa hiện tại?
 
-        function showAlert(title, message) {
+        // Helper: Ẩn label cảnh báo và xóa hiệu ứng
+        function hideWarning() {
+            editWarningLabel.classList.add('hidden');
+            editWarningLabel.classList.remove('flex', 'warning-glow');
+            document.getElementById('toggleExtBtn').classList.remove('hint-glow');
+            document.getElementById('btn-reset').classList.remove('hint-glow');
+            hasWarnedEdit = false;
+        }
+
+        // Helper: Hiện label cảnh báo (nếu chưa hiện)
+        function showWarning() {
+            if (!hasWarnedEdit) {
+                editWarningLabel.classList.remove('hidden');
+                editWarningLabel.classList.add('flex', 'warning-glow');
+                document.getElementById('toggleExtBtn').classList.add('hint-glow');
+                document.getElementById('btn-reset').classList.add('hint-glow');
+                hasWarnedEdit = true;
+            }
+        }
+
+        // Hiển thị Alert
+        function showAlert(title, message, isError = false) {
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-message').innerText = message;
-            alertModal.classList.remove('hidden'); alertModal.classList.add('flex');
+            const iconEl = document.getElementById('alert-icon');
+            if (isError) {
+                iconEl.innerText = 'error';
+                iconEl.className = 'material-icons-round text-3xl text-[#E81123]';
+            } else {
+                iconEl.innerText = 'info';
+                iconEl.className = 'material-icons-round text-3xl text-[#0078D4]';
+            }
+            alertModal.classList.remove('hidden');
+            alertModal.classList.add('flex');
         }
-        document.getElementById('btn-close-alert').addEventListener('click', () => {
-            alertModal.classList.add('hidden'); alertModal.classList.remove('flex');
-        });
-        toggleExtBtn.addEventListener('click', () => { extensionPanel.style.display = extensionPanel.style.display === 'none' ? 'flex' : 'none'; });
-        closeExtBtn.addEventListener('click', () => extensionPanel.style.display = 'none');
-        function showApiError(message) { errorDetail.classList.remove('hidden'); errorDetail.innerText = message; }
-        function hideApiError() { errorDetail.classList.add('hidden'); }
 
-        // ============================================================
-        // HÀM CHUẨN ĐỂ GỌI GOOGLE API
-        // ============================================================
+        function closeAlert() {
+            alertModal.classList.add('hidden');
+            alertModal.classList.remove('flex');
+        }
+        document.getElementById('btn-close-alert').addEventListener('click', closeAlert);
+        document.getElementById('btn-close-alert-x').addEventListener('click', closeAlert);
+
+        // Ẩn panel khi click vào textarea
+        function hideExtensionPanel() {
+            if (extensionPanel.style.display !== 'none') {
+                extensionPanel.style.display = 'none';
+            }
+        }
+        aiInput.addEventListener('click', hideExtensionPanel);
+        aiOutputParsed.addEventListener('click', hideExtensionPanel);
+
+        // Xử lý sự kiện nhập/chỉnh sửa văn bản
+        function handleTextChange() {
+            hideExtensionPanel();
+
+            // Lấy văn bản hiện tại (từ textarea hoặc contenteditable)
+            const currentText = aiInput.classList.contains('hidden') ? aiOutputParsed.innerText : aiInput.value;
+
+            // Chỉ xử lý cảnh báo nếu đã từng phân tích ít nhất một lần
+            if (hasBeenAnalyzed) {
+                // So sánh với referenceText (văn bản gốc sau lần phân tích cuối)
+                if (currentText !== referenceText) {
+                    showWarning();
+                } else {
+                    // Nếu nội dung trở về đúng với bản gốc, có thể ẩn cảnh báo
+                    hideWarning();
+                }
+            }
+        }
+
+        // Gán sự kiện input cho cả hai thành phần
+        aiInput.addEventListener('input', handleTextChange);
+        aiOutputParsed.addEventListener('input', handleTextChange);
+
+        // Mở/đóng panel
+        toggleExtBtn.addEventListener('click', () => {
+            extensionPanel.style.display = extensionPanel.style.display === 'none' ? 'flex' : 'none';
+        });
+        closeExtBtn.addEventListener('click', () => extensionPanel.style.display = 'none');
+
+        function showApiError(message) {
+            errorDetail.classList.remove('hidden');
+            errorDetail.innerText = message;
+        }
+        function hideApiError() {
+            errorDetail.classList.add('hidden');
+        }
+
+        // Hàm gọi API kiểm chứng
         async function runFactCheck(text, apiKey, onComplete, onError) {
             const prompt = `Bạn là chuyên gia kiểm chứng học thuật. Hãy phân tích văn bản sau đây, chia nhỏ thành từng câu/luận điểm riêng biệt.
             Với mỗi câu, xác định xem nó có đúng sự thật, thiếu ngữ cảnh, hay là ảo giác / sai lệch.
@@ -287,39 +402,25 @@ Vào năm 2022, bệnh viện Mount Sinai đã thực hiện ca ghép gan nhân 
             Văn bản: "${text}"`;
 
             try {
-                // Khởi tạo client chuẩn
                 const ai = new GoogleGenAI({ apiKey: apiKey });
-
-                // DÙNG HÀM generateContent THAY VÌ interactions.create
-                const response = await ai.models.generateContent({
-                    model: MODEL_NAME,
-                    contents: prompt,
-                    config: {
-                        temperature: 0.1
-                    }
-                });
-
+                const response = await ai.models.generateContent({ model: MODEL_NAME, contents: prompt, config: { temperature: 0.1 } });
                 let fullText = response.text || '';
                 let tokenCount = Math.round(fullText.length / 4);
-
                 let clean = fullText.replace(/```json/g, '').replace(/```/g, '').trim();
                 const match = clean.match(/\[[\s\S]*\]/);
                 if (match) clean = match[0];
-
                 onComplete(clean, fullText, tokenCount);
-
             } catch (err) {
-                console.error('API Error:', err);
-                if (err.message.includes('API key not valid')) {
-                    onError('API Key không hợp lệ.');
-                } else {
-                    onError(err.message || 'Lỗi kết nối SDK.');
-                }
+                if (err.message.includes('API key not valid')) onError('API Key không hợp lệ.');
+                else onError(err.message || 'Lỗi kết nối SDK.');
             }
         }
 
+        // Hàm hiển thị kết quả
         function renderResults(dataArray) {
-            let parsedHTML = ''; let cardsHTML = ''; let tableHTML = '';
+            let parsedHTML = '';
+            let cardsHTML = '';
+            let tableHTML = '';
             let counts = { success: 0, warning: 0, danger: 0 };
 
             dataArray.forEach((item, index) => {
@@ -328,44 +429,114 @@ Vào năm 2022, bệnh viện Mount Sinai đã thực hiện ca ghép gan nhân 
                 counts[item.status]++;
                 parsedHTML += `<span id="${id}" class="raw-text highlight-${item.status}">${item.segment}</span> `;
 
-                let icon, title, colorClass, bgClass, borderClass;
-                if (item.status === 'success') { icon = 'check_circle'; title = 'Đáng tin cậy'; colorClass = 'text-emerald-600'; bgClass = 'bg-emerald-50'; borderClass = 'border-emerald-200'; }
-                else if (item.status === 'warning') { icon = 'warning'; title = 'Cần xác minh thêm'; colorClass = 'text-amber-600'; bgClass = 'bg-amber-50'; borderClass = 'border-amber-200'; }
-                else { icon = 'error'; title = 'Ảo giác / Sai lệch'; colorClass = 'text-red-600'; bgClass = 'bg-red-50'; borderClass = 'border-red-200'; }
+                let icon, title, colorStr, bgStr, borderStr, badgeText;
+                if (item.status === 'success') {
+                    icon = 'check_circle';
+                    title = 'Đáng tin cậy';
+                    colorStr = '#107C10';
+                    bgStr = 'bg-white';
+                    borderStr = 'border-l-4 border-l-[#107C10] border-y border-r border-[#e5e5e5]';
+                    badgeText = 'ĐÚNG';
+                } else if (item.status === 'warning') {
+                    icon = 'warning';
+                    title = 'Cần xác minh';
+                    colorStr = '#EAB308';
+                    bgStr = 'bg-[#FEF9C3]';
+                    borderStr = 'border border-[#FDE047] border-l-4 border-l-[#EAB308]';
+                    badgeText = 'LƯU Ý';
+                } else {
+                    icon = 'error';
+                    title = 'Bịa đặt / Sai lệch';
+                    colorStr = '#E81123';
+                    bgStr = 'bg-[#FDE7E9]';
+                    borderStr = 'border border-[#F9D0C4] border-l-4 border-l-[#E81123]';
+                    badgeText = 'SAI';
+                }
 
-                cardsHTML += `<div class="p-3 border ${borderClass} ${bgClass} rounded-lg flex items-start gap-3 cursor-pointer hover:shadow-md transition" onmouseover="focusText('${id}')" onmouseout="unfocusText()"><span class="material-icons-round ${colorClass} mt-0.5">${icon}</span><div><h4 class="text-sm font-bold ${colorClass.replace('600', '800')}">${title}</h4><p class="text-xs ${colorClass} mt-1">${item.reason}</p></div></div>`;
-                const circleColor = item.status === 'success' ? 'bg-emerald-500' : (item.status === 'warning' ? 'bg-amber-500' : 'bg-red-500');
-                tableHTML += `<tr><td class="border border-gray-300 p-2 text-center"><div class="w-4 h-4 rounded-full ${circleColor} mx-auto"></div></td><td class="border border-gray-300 p-2 text-gray-700 italic">"${item.segment}"</td><td class="border border-gray-300 p-2 ${colorClass.replace('600', '700')}">${item.reason}</td></tr>`;
+                cardsHTML += `<div class="p-3 ${bgStr} ${borderStr} flex items-start gap-3 cursor-text transition-colors" onmouseover="focusText('${id}')" onmouseout="unfocusText()">
+                    <span class="material-icons-round mt-0.5" style="color: ${colorStr}; font-size: 18px;">${icon}</span>
+                    <div>
+                        <h4 class="text-[13px] font-semibold text-black">${title}</h4>
+                        <p class="text-[12px] text-gray-700 mt-1">${item.reason}</p>
+                    </div>
+                </div>`;
+                
+                tableHTML += `<tr>
+                    <td class="border border-gray-400 p-2 text-center align-middle font-bold" style="color: ${colorStr}">${badgeText}</td>
+                    <td class="border border-gray-400 p-2 text-gray-800">"${item.segment}"</td>
+                    <td class="border border-gray-400 p-2 text-gray-800">${item.reason}</td>
+                </tr>`;
             });
 
-            aiInput.classList.add('hidden'); aiOutputParsed.innerHTML = parsedHTML; aiOutputParsed.classList.remove('hidden');
-            document.getElementById('count-success').innerText = counts.success; document.getElementById('count-warning').innerText = counts.warning; document.getElementById('count-danger').innerText = counts.danger;
-            cardsContainer.innerHTML = cardsHTML; reportTableBody.innerHTML = tableHTML;
-            stateScanning.classList.add('hidden'); stateScanning.classList.remove('flex');
-            stateResults.classList.remove('hidden'); stateResults.classList.add('flex');
-            isScanning = false; btnScan.disabled = false; hideApiError();
+            aiInput.classList.add('hidden');
+            aiOutputParsed.innerHTML = parsedHTML;
+            aiOutputParsed.classList.remove('hidden');
+
+            document.getElementById('count-success').innerText = counts.success;
+            document.getElementById('count-warning').innerText = counts.warning;
+            document.getElementById('count-danger').innerText = counts.danger;
+            cardsContainer.innerHTML = cardsHTML;
+            reportTableBody.innerHTML = tableHTML;
+
+            stateScanning.classList.add('hidden');
+            stateScanning.classList.remove('flex');
+            stateResults.classList.remove('hidden');
+            stateResults.classList.add('flex');
+            isScanning = false;
+            btnScan.disabled = false;
+            hideApiError();
+
+            // Đánh dấu đã phân tích và cập nhật văn bản tham chiếu
+            hasBeenAnalyzed = true;
+            // Lưu văn bản hiện tại (từ output parsed) làm reference
+            referenceText = aiOutputParsed.innerText;
+            // Ẩn cảnh báo (vì mới phân tích xong, nội dung khớp)
+            hideWarning();
         }
 
+        // Bắt đầu kiểm chứng
         btnScan.addEventListener('click', async () => {
-            const textToAnalyze = aiInput.value.trim(); const apiKey = apiKeyInput.value.trim();
-            if (!textToAnalyze) { showAlert('Thiếu dữ liệu', 'Vui lòng dán văn bản.'); return; }
-            if (!apiKey) { showAlert('Thiếu API Key', 'Vui lòng nhập Gemini API Key.'); return; }
+            // Ẩn cảnh báo và hiệu ứng nhấp nháy (nếu có)
+            hideWarning();
 
-            hideApiError(); stateIntro.classList.add('hidden'); stateScanning.classList.remove('hidden'); stateScanning.classList.add('flex');
-            btnScan.disabled = true; isScanning = true;
+            // Lấy nội dung cần phân tích – ưu tiên textarea nếu đang hiển thị
+            let textToAnalyze = aiInput.value.trim();
+            // Nếu textarea đang ẩn (đã có kết quả), lấy từ output parsed
+            if (aiInput.classList.contains('hidden')) {
+                textToAnalyze = aiOutputParsed.innerText.trim();
+            }
+
+            const apiKey = apiKeyInput.value.trim();
+            if (!textToAnalyze) {
+                showAlert('Cảnh báo', 'Vui lòng dán văn bản để tiếp tục.', true);
+                return;
+            }
+            if (!apiKey) {
+                showAlert('Yêu cầu cấu hình', 'Vui lòng nhập Gemini API Key trong bảng điều khiển.', true);
+                return;
+            }
+
+            hideApiError();
+            stateIntro.classList.add('hidden');
+            stateScanning.classList.remove('hidden');
+            stateScanning.classList.add('flex');
+            btnScan.disabled = true;
+            isScanning = true;
+
             streamPreview.textContent = 'Đang gọi dữ liệu từ API chuẩn...';
+            streamPreview2.textContent = 'Đang gọi dữ liệu từ API chuẩn...';
             streamTokenCount.textContent = '0 tokens';
-            streamStatusLabel.textContent = 'Đang xử lý...'; streamStatusLabel2.textContent = 'Đang xử lý...';
-            if (streamDot) streamDot.className = 'status-dot streaming';
-            const wrapper = document.getElementById('stream-preview-wrapper'); wrapper.classList.remove('hidden');
+            streamStatusLabel.textContent = 'Đang xử lý...';
+            const wrapper = document.getElementById('stream-preview-wrapper');
+            wrapper.classList.remove('hidden');
 
             try {
                 await runFactCheck(
-                    textToAnalyze, apiKey,
+                    textToAnalyze,
+                    apiKey,
                     (cleanJson, fullRawText, tokens) => {
                         streamPreview.textContent = fullRawText;
-                        streamStatusLabel.textContent = '✅ Hoàn tất'; streamStatusLabel2.textContent = '✅ Hoàn tất';
-                        if (streamDot) streamDot.className = 'status-dot done';
+                        streamStatusLabel.textContent = 'Hoàn tất';
                         streamTokenCount.textContent = tokens + ' tokens';
                         setTimeout(() => { wrapper.classList.add('hidden'); }, 400);
                         try {
@@ -373,37 +544,123 @@ Vào năm 2022, bệnh viện Mount Sinai đã thực hiện ca ghép gan nhân 
                             if (!Array.isArray(parsed)) throw new Error('Dữ liệu không phải mảng.');
                             renderResults(parsed);
                         } catch (parseErr) {
-                            showAlert('Lỗi JSON', 'Gemini trả về định dạng lỗi.'); resetUI();
+                            showAlert('Lỗi dữ liệu', 'Gemini trả về định dạng không hợp lệ.', true);
+                            resetUI();
                         }
                     },
                     (errMsg) => {
-                        showApiError(errMsg); showAlert('Lỗi API', errMsg); resetUI();
-                        if (streamDot) streamDot.className = 'status-dot error';
-                        streamStatusLabel.textContent = '❌ Lỗi'; streamStatusLabel2.textContent = '❌ Lỗi';
+                        showApiError(errMsg);
+                        showAlert('Lỗi kết nối API', errMsg, true);
+                        resetUI();
                     }
                 );
-            } catch (err) {}
+            } catch (err) {
+                // fallback
+            }
         });
 
         function resetUI() {
-            stateScanning.classList.add('hidden'); stateScanning.classList.remove('flex');
-            stateIntro.classList.remove('hidden'); btnScan.disabled = false; isScanning = false;
+            stateScanning.classList.add('hidden');
+            stateScanning.classList.remove('flex');
+            stateIntro.classList.remove('hidden');
+            btnScan.disabled = false;
+            isScanning = false;
             document.getElementById('stream-preview-wrapper').classList.add('hidden');
         }
 
         btnAbort.addEventListener('click', () => {
-            if (isScanning) { resetUI(); hideApiError(); if (streamDot) streamDot.className = 'status-dot idle'; streamStatusLabel.textContent = 'Đã hủy'; streamStatusLabel2.textContent = 'Đã hủy'; }
+            if (isScanning) {
+                resetUI();
+                hideApiError();
+            }
         });
+
         btnReset.addEventListener('click', () => {
-            aiOutputParsed.classList.add('hidden'); aiInput.classList.remove('hidden');
-            stateResults.classList.add('hidden'); stateResults.classList.remove('flex');
-            stateIntro.classList.remove('hidden'); btnScan.disabled = false; isScanning = false;
-            document.getElementById('stream-preview-wrapper').classList.add('hidden'); hideApiError();
+            // Ẩn cảnh báo và hiệu ứng
+            hideWarning();
+
+            // Nếu đang xem kết quả, lấy nội dung từ output parsed đưa lại vào textarea
+            if (aiOutputParsed.innerText.trim() !== '') {
+                aiInput.value = aiOutputParsed.innerText;
+            }
+            // Cập nhật reference text thành nội dung mới (đồng bộ)
+            referenceText = aiInput.value;
+            // Đặt lại trạng thái đã phân tích (vì quay về chế độ nhập)
+            // Nhưng vẫn giữ hasBeenAnalyzed = true để cảnh báo vẫn kích hoạt khi chỉnh sửa sau
+            // (Nếu muốn reset hoàn toàn, có thể đặt false, nhưng theo logic thì vẫn giữ)
+
+            aiOutputParsed.classList.add('hidden');
+            aiInput.classList.remove('hidden');
+            stateResults.classList.add('hidden');
+            stateResults.classList.remove('flex');
+            stateIntro.classList.remove('hidden');
+            btnScan.disabled = false;
+            isScanning = false;
+            document.getElementById('stream-preview-wrapper').classList.add('hidden');
+            hideApiError();
+            hasWarnedEdit = false; // Reset cờ hiện cảnh báo
         });
-        btnReport.addEventListener('click', () => { reportModal.classList.remove('hidden'); reportModal.classList.add('flex'); });
-        document.getElementById('close-modal').addEventListener('click', () => { reportModal.classList.add('hidden'); reportModal.classList.remove('flex'); });
-        window.focusText = function(id) { document.querySelectorAll('.raw-text').forEach(el => { if (el.id !== id) { el.style.opacity = '0.3'; el.style.backgroundColor = 'transparent'; el.style.borderBottom = 'none'; } }); const el = document.getElementById(id); if (el) el.style.fontWeight = '700'; };
-        window.unfocusText = function() { document.querySelectorAll('.raw-text').forEach(el => { el.style.opacity = '1'; el.style.fontWeight = 'normal'; if (el.classList.contains('highlight-success')) { el.style.backgroundColor = 'rgba(16, 185, 129, 0.2)'; el.style.borderBottom = '2px solid #10B981'; } else if (el.classList.contains('highlight-warning')) { el.style.backgroundColor = 'rgba(245, 158, 11, 0.2)'; el.style.borderBottom = '2px solid #F59E0B'; } else if (el.classList.contains('highlight-danger')) { el.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'; el.style.borderBottom = '2px solid #EF4444'; } }); };
+
+        btnReport.addEventListener('click', () => {
+            reportModal.classList.remove('hidden');
+            reportModal.classList.add('flex');
+        });
+        document.getElementById('close-modal').addEventListener('click', () => {
+            reportModal.classList.add('hidden');
+            reportModal.classList.remove('flex');
+        });
+
+        // Global functions for hover effect
+        window.focusText = function(id) {
+            document.querySelectorAll('.raw-text').forEach(el => {
+                if (el.id !== id) {
+                    el.style.opacity = '0.4';
+                    el.style.backgroundColor = 'transparent';
+                    el.style.borderBottom = 'none';
+                }
+            });
+            const el = document.getElementById(id);
+            if (el) el.style.fontWeight = '600';
+        };
+        window.unfocusText = function() {
+            document.querySelectorAll('.raw-text').forEach(el => {
+                el.style.opacity = '1';
+                el.style.fontWeight = 'normal';
+                if (el.classList.contains('highlight-success')) {
+                    el.style.backgroundColor = 'rgba(16, 124, 16, 0.15)';
+                    el.style.borderBottom = '2px solid #107C10';
+                } else if (el.classList.contains('highlight-warning')) {
+                    el.style.backgroundColor = 'rgba(234, 179, 8, 0.15)';
+                    el.style.borderBottom = '2px solid #EAB308';
+                } else if (el.classList.contains('highlight-danger')) {
+                    el.style.backgroundColor = 'rgba(232, 17, 35, 0.15)';
+                    el.style.borderBottom = '2px solid #E81123';
+                }
+            });
+        };
+
+        // Xuất PDF
+        btnDownloadPdf.addEventListener('click', () => {
+            const element = document.getElementById('pdf-content');
+            const opt = {
+                margin: 10,
+                filename: 'Bao_Cao_Liem_Chinh_AI.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            const originalText = btnDownloadPdf.innerHTML;
+            btnDownloadPdf.innerHTML = '<span class="loader border-[#ccc] border-t-[#D83B01] w-3 h-3 border border-white mr-1"></span> Đang lưu...';
+            html2pdf().set(opt).from(element).save().then(() => {
+                btnDownloadPdf.innerHTML = originalText;
+            });
+        });
+
+        // Khởi tạo: textarea trống, không có cảnh báo, chưa phân tích
+        aiInput.value = '';
+        referenceText = '';
+        hasBeenAnalyzed = false;
+        hideWarning();
     </script>
 </body>
 </html>
