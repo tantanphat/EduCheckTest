@@ -83,7 +83,7 @@
         </div>
 
         <div class="flex-1 flex relative overflow-hidden bg-[#202020]">
-            <div class="flex-1 flex flex-col items-center pt-8 overflow-y-auto px-4 pb-20 w-full">
+            <div class="flex-1 flex flex-col items-center pt-8 overflow-y-auto px-4 pb-20 w-full transition-all">
                 
                 <div class="w-full max-w-4xl flex mb-6">
                     <div class="w-8 h-8 bg-[#0078D4] flex items-center justify-center text-white font-semibold mr-4 flex-shrink-0 border border-[#005a9e]">U</div>
@@ -99,7 +99,7 @@
                     <div class="w-full relative">
                         <textarea id="ai-input" class="w-full h-80 bg-transparent text-gray-200 resize-none outline-none leading-relaxed text-[15px]"></textarea>
 
-                        <div id="ai-output-parsed" class="hidden text-gray-200 leading-relaxed text-[15px] space-y-2 outline-none" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
+                        <div id="ai-output-parsed" class="hidden text-gray-200 leading-relaxed text-[15px] space-y-2 outline-none whitespace-pre-wrap" style="white-space: pre-wrap;" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
 
                         <div id="stream-preview-wrapper" class="hidden w-full mt-4">
                             <div class="flex items-center gap-2 mb-2 border-b border-[#404040] pb-2">
@@ -113,15 +113,15 @@
                 </div>
             </div>
 
-            <!-- NHÃN CẢNH BÁO – chỉ hiện sau lần chỉnh sửa thứ 2 trở đi (sau khi đã phân tích) -->
             <div id="edit-warning-label" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 hidden items-center gap-2 px-5 py-2.5 border border-[#EAB308] text-[#EAB308] text-[13px] font-medium rounded shadow-lg backdrop-blur-sm transition-all duration-300">
                 <span class="material-icons-round text-[18px]">info</span>
                 Nội dung yêu cầu để kiểm chứng đã bị chỉnh sửa
             </div>
 
+            <!-- Fix panel không đè lên textarea -->
             <div id="extension-panel"
-                class="absolute top-4 left-4 right-4 sm:left-auto sm:right-4 w-auto sm:w-96 max-w-full bg-[#f3f3f3] win-shadow border border-[#ccc] flex flex-col overflow-hidden slide-in rounded-sm"
-                style="height: calc(100% - 30px); display: none;">
+                class="h-full w-full sm:w-96 bg-[#f3f3f3] win-shadow border-l border-[#ccc] flex flex-col overflow-hidden slide-in flex-shrink-0 z-20"
+                style="display: none;">
                 <div class="bg-white border-b border-[#ccc] p-3 flex items-center justify-between z-10">
                     <div class="flex items-center gap-2 text-[#0078D4]">
                         <span class="material-icons-round text-lg">verified_user</span>
@@ -223,21 +223,35 @@
                     </div>
 
                     <div class="p-6 overflow-y-auto bg-[#e5e5e5] flex-1 max-h-[65vh]">
-                        <div id="pdf-content" class="bg-white p-10 win-shadow mx-auto" style="width:100%; max-width: 800px; font-family:'Times New Roman',Times,serif;">
-                            <div class="text-center mb-6 border-b-2 border-black pb-4">
-                                <h1 class="text-2xl font-bold uppercase">Báo Cáo Rà Soát Liêm Chính Học Thuật</h1>
-                                <p class="text-sm mt-1 text-gray-600">Hệ thống EduCheck Pro</p>
+                        <!-- Template PDF MỚI cập nhật font, ngày giờ, số token, thanh trạng thái % -->
+                        <div id="pdf-content" class="bg-white p-10 win-shadow mx-auto text-left whitespace-pre-wrap" style="width:100%; max-width: 800px; font-family: Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                            <div class="text-center mb-6">
+                                <div class="font-bold text-[18px]">BÁO CÁO KIỂM CHỨNG THÔNG TIN AI</div>
+                                <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
+                                <div class="text-[14px]">EduCheck Pro </div>
                             </div>
-                            <table class="w-full text-left text-[13px] border-collapse border border-gray-400 mb-6">
-                                <thead>
-                                    <tr class="bg-gray-100">
-                                        <th class="border border-gray-400 p-2 w-20 text-center font-bold">Mức độ</th>
-                                        <th class="border border-gray-400 p-2 w-2/5 font-bold">Văn bản trích xuất</th>
-                                        <th class="border border-gray-400 p-2 font-bold">Nhận xét chuyên gia AI</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-table-body"></tbody>
-                            </table>
+
+                            <div class="mb-2">
+                                Ngày tạo: <span id="pdf-date"></span><br>
+                                Số token: <span id="pdf-tokens">0</span>
+                            </div>
+
+                            <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
+                            <div class="font-bold mb-2">  📊 TÓM TẮT KẾT QUẢ</div>
+                            <div class="mb-2 pl-2">
+                                <div>  🟢 ĐÁNG TIN:   <span id="pdf-summary-success" class="font-bold">0</span> luận điểm</div>
+                                <div>  🟡 CẦN XÁC MINH: <span id="pdf-summary-warning" class="font-bold">0</span> luận điểm</div>
+                                <div>  🔴 SAI LỆCH:  <span id="pdf-summary-danger" class="font-bold">0</span> luận điểm</div>
+                                <br>
+                                <div>  Độ tin cậy tổng thể: <span id="pdf-trust-bar"></span></div>
+                            </div>
+                            
+                            <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
+                            <div class="font-bold mb-4">  📄 PHÂN TÍCH CHI TIẾT</div>
+                            
+                            <div id="report-table-body" class="space-y-4 mb-4"></div>
+
+                            <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
                         </div>
                     </div>
                 </div>
@@ -269,7 +283,6 @@
     <script type="module">
         import { GoogleGenAI } from "https://esm.sh/@google/genai";
 
-        // DOM elements
         const toggleExtBtn = document.getElementById('toggleExtBtn');
         const extensionPanel = document.getElementById('extension-panel');
         const closeExtBtn = document.getElementById('closeExt');
@@ -297,11 +310,10 @@
 
         const MODEL_NAME = 'gemini-2.5-flash';
         let isScanning = false;
-        let hasBeenAnalyzed = false;          // Đánh dấu đã có lần phân tích thành công
-        let referenceText = '';               // Văn bản gốc dùng để so sánh
-        let hasWarnedEdit = false;            // Đã hiện cảnh báo cho lần chỉnh sửa hiện tại?
+        let hasBeenAnalyzed = false;
+        let referenceText = '';
+        let hasWarnedEdit = false;
 
-        // Helper: Ẩn label cảnh báo và xóa hiệu ứng
         function hideWarning() {
             editWarningLabel.classList.add('hidden');
             editWarningLabel.classList.remove('flex', 'warning-glow');
@@ -310,7 +322,6 @@
             hasWarnedEdit = false;
         }
 
-        // Helper: Hiện label cảnh báo (nếu chưa hiện)
         function showWarning() {
             if (!hasWarnedEdit) {
                 editWarningLabel.classList.remove('hidden');
@@ -321,7 +332,6 @@
             }
         }
 
-        // Hiển thị Alert
         function showAlert(title, message, isError = false) {
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-message').innerText = message;
@@ -344,39 +354,20 @@
         document.getElementById('btn-close-alert').addEventListener('click', closeAlert);
         document.getElementById('btn-close-alert-x').addEventListener('click', closeAlert);
 
-        // Ẩn panel khi click vào textarea
-        function hideExtensionPanel() {
-            if (extensionPanel.style.display !== 'none') {
-                extensionPanel.style.display = 'none';
-            }
-        }
-        aiInput.addEventListener('click', hideExtensionPanel);
-        aiOutputParsed.addEventListener('click', hideExtensionPanel);
-
-        // Xử lý sự kiện nhập/chỉnh sửa văn bản
         function handleTextChange() {
-            hideExtensionPanel();
-
-            // Lấy văn bản hiện tại (từ textarea hoặc contenteditable)
             const currentText = aiInput.classList.contains('hidden') ? aiOutputParsed.innerText : aiInput.value;
-
-            // Chỉ xử lý cảnh báo nếu đã từng phân tích ít nhất một lần
             if (hasBeenAnalyzed) {
-                // So sánh với referenceText (văn bản gốc sau lần phân tích cuối)
                 if (currentText !== referenceText) {
                     showWarning();
                 } else {
-                    // Nếu nội dung trở về đúng với bản gốc, có thể ẩn cảnh báo
                     hideWarning();
                 }
             }
         }
 
-        // Gán sự kiện input cho cả hai thành phần
         aiInput.addEventListener('input', handleTextChange);
         aiOutputParsed.addEventListener('input', handleTextChange);
 
-        // Mở/đóng panel
         toggleExtBtn.addEventListener('click', () => {
             extensionPanel.style.display = extensionPanel.style.display === 'none' ? 'flex' : 'none';
         });
@@ -390,7 +381,6 @@
             errorDetail.classList.add('hidden');
         }
 
-        // Hàm gọi API kiểm chứng
         async function runFactCheck(text, apiKey, onComplete, onError) {
             const prompt = `Bạn là chuyên gia kiểm chứng học thuật. Hãy phân tích văn bản sau đây, chia nhỏ thành từng câu/luận điểm riêng biệt.
             Với mỗi câu, xác định xem nó có đúng sự thật, thiếu ngữ cảnh, hay là ảo giác / sai lệch.
@@ -418,41 +408,41 @@
             }
         }
 
-        // Hàm hiển thị kết quả
         function renderResults(dataArray) {
             let parsedHTML = '';
             let cardsHTML = '';
             let tableHTML = '';
             let counts = { success: 0, warning: 0, danger: 0 };
 
+            const originalInputText = aiInput.value;
+            let currentTextIndex = 0;
+
             dataArray.forEach((item, index) => {
                 const id = `chunk-${index}`;
                 counts[item.status] = counts[item.status] || 0;
                 counts[item.status]++;
-                parsedHTML += `<span id="${id}" class="raw-text highlight-${item.status}">${item.segment}</span> `;
+                
+                const pos = originalInputText.indexOf(item.segment, currentTextIndex);
+                if (pos !== -1) {
+                    const prefix = originalInputText.substring(currentTextIndex, pos);
+                    parsedHTML += prefix.replace(/\n/g, '<br>');
+                    currentTextIndex = pos + item.segment.length;
+                }
 
-                let icon, title, colorStr, bgStr, borderStr, badgeText;
+                parsedHTML += `<span id="${id}" class="raw-text highlight-${item.status}">${item.segment}</span>`;
+
+                let icon, title, colorStr, bgStr, borderStr;
+                let pdfIcon, pdfStatusLabel;
+                
                 if (item.status === 'success') {
-                    icon = 'check_circle';
-                    title = 'Đáng tin cậy';
-                    colorStr = '#107C10';
-                    bgStr = 'bg-white';
-                    borderStr = 'border-l-4 border-l-[#107C10] border-y border-r border-[#e5e5e5]';
-                    badgeText = 'ĐÚNG';
+                    icon = 'check_circle'; title = 'Đáng tin cậy'; colorStr = '#107C10'; bgStr = 'bg-white'; borderStr = 'border-l-4 border-l-[#107C10] border-y border-r border-[#e5e5e5]'; 
+                    pdfIcon = '🟢'; pdfStatusLabel = 'ĐÚNG';
                 } else if (item.status === 'warning') {
-                    icon = 'warning';
-                    title = 'Cần xác minh';
-                    colorStr = '#EAB308';
-                    bgStr = 'bg-[#FEF9C3]';
-                    borderStr = 'border border-[#FDE047] border-l-4 border-l-[#EAB308]';
-                    badgeText = 'LƯU Ý';
+                    icon = 'warning'; title = 'Cần xác minh'; colorStr = '#EAB308'; bgStr = 'bg-[#FEF9C3]'; borderStr = 'border border-[#FDE047] border-l-4 border-l-[#EAB308]'; 
+                    pdfIcon = '🟡'; pdfStatusLabel = 'CẦN XÁC MINH';
                 } else {
-                    icon = 'error';
-                    title = 'Bịa đặt / Sai lệch';
-                    colorStr = '#E81123';
-                    bgStr = 'bg-[#FDE7E9]';
-                    borderStr = 'border border-[#F9D0C4] border-l-4 border-l-[#E81123]';
-                    badgeText = 'SAI';
+                    icon = 'error'; title = 'Bịa đặt / Sai lệch'; colorStr = '#E81123'; bgStr = 'bg-[#FDE7E9]'; borderStr = 'border border-[#F9D0C4] border-l-4 border-l-[#E81123]'; 
+                    pdfIcon = '🔴'; pdfStatusLabel = 'SAI LỆCH';
                 }
 
                 cardsHTML += `<div class="p-3 ${bgStr} ${borderStr} flex items-start gap-3 cursor-text transition-colors" onmouseover="focusText('${id}')" onmouseout="unfocusText()">
@@ -463,12 +453,17 @@
                     </div>
                 </div>`;
                 
-                tableHTML += `<tr>
-                    <td class="border border-gray-400 p-2 text-center align-middle font-bold" style="color: ${colorStr}">${badgeText}</td>
-                    <td class="border border-gray-400 p-2 text-gray-800">"${item.segment}"</td>
-                    <td class="border border-gray-400 p-2 text-gray-800">${item.reason}</td>
-                </tr>`;
+                tableHTML += `
+                <div class="mb-4 pl-4 pr-2">
+                    <div class="font-bold">${pdfIcon} ${pdfStatusLabel} – Luận điểm ${index + 1}:</div>
+                    <div class="my-1">"${item.segment}"</div>
+                    <div class="pl-4">→ ${item.reason}</div>
+                </div>`;
             });
+
+            if (currentTextIndex < originalInputText.length) {
+                parsedHTML += originalInputText.substring(currentTextIndex).replace(/\n/g, '<br>');
+            }
 
             aiInput.classList.add('hidden');
             aiOutputParsed.innerHTML = parsedHTML;
@@ -479,6 +474,27 @@
             document.getElementById('count-danger').innerText = counts.danger;
             cardsContainer.innerHTML = cardsHTML;
             reportTableBody.innerHTML = tableHTML;
+            
+            // Xử lý tự động tính phần trăm cho thanh trạng thái độ tin cậy của file PDF
+            const totalItems = counts.success + counts.warning + counts.danger;
+            const percent = totalItems === 0 ? 0 : Math.round((counts.success / totalItems) * 100);
+            const solidBlocks = Math.round(percent / 10);
+            const emptyBlocks = 10 - solidBlocks;
+            const trustBarStr = '█'.repeat(solidBlocks) + '░'.repeat(emptyBlocks);
+
+            document.getElementById('pdf-summary-success').innerText = counts.success;
+            document.getElementById('pdf-summary-warning').innerText = counts.warning;
+            document.getElementById('pdf-summary-danger').innerText = counts.danger;
+            document.getElementById('pdf-trust-bar').innerText = `${trustBarStr}  ${percent}%`;
+
+            // Lấy ngày giờ thực tế
+            const now = new Date();
+            const timeStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('pdf-date').innerText = timeStr;
+            
+            // Lấy token
+            const tokenStr = document.getElementById('stream-token-count').innerText.replace(' tokens', '');
+            document.getElementById('pdf-tokens').innerText = tokenStr;
 
             stateScanning.classList.add('hidden');
             stateScanning.classList.remove('flex');
@@ -488,28 +504,20 @@
             btnScan.disabled = false;
             hideApiError();
 
-            // Đánh dấu đã phân tích và cập nhật văn bản tham chiếu
             hasBeenAnalyzed = true;
-            // Lưu văn bản hiện tại (từ output parsed) làm reference
             referenceText = aiOutputParsed.innerText;
-            // Ẩn cảnh báo (vì mới phân tích xong, nội dung khớp)
             hideWarning();
         }
 
-        // Bắt đầu kiểm chứng
         btnScan.addEventListener('click', async () => {
-            // Ẩn cảnh báo và hiệu ứng nhấp nháy (nếu có)
             hideWarning();
-
-            // Lấy nội dung cần phân tích – ưu tiên textarea nếu đang hiển thị
-            let textToAnalyze = aiInput.value.trim();
-            // Nếu textarea đang ẩn (đã có kết quả), lấy từ output parsed
+            let textToAnalyze = aiInput.value;
             if (aiInput.classList.contains('hidden')) {
-                textToAnalyze = aiOutputParsed.innerText.trim();
+                textToAnalyze = aiOutputParsed.innerText;
             }
 
             const apiKey = apiKeyInput.value.trim();
-            if (!textToAnalyze) {
+            if (!textToAnalyze.trim()) {
                 showAlert('Cảnh báo', 'Vui lòng dán văn bản để tiếp tục.', true);
                 return;
             }
@@ -578,18 +586,11 @@
         });
 
         btnReset.addEventListener('click', () => {
-            // Ẩn cảnh báo và hiệu ứng
             hideWarning();
-
-            // Nếu đang xem kết quả, lấy nội dung từ output parsed đưa lại vào textarea
             if (aiOutputParsed.innerText.trim() !== '') {
                 aiInput.value = aiOutputParsed.innerText;
             }
-            // Cập nhật reference text thành nội dung mới (đồng bộ)
             referenceText = aiInput.value;
-            // Đặt lại trạng thái đã phân tích (vì quay về chế độ nhập)
-            // Nhưng vẫn giữ hasBeenAnalyzed = true để cảnh báo vẫn kích hoạt khi chỉnh sửa sau
-            // (Nếu muốn reset hoàn toàn, có thể đặt false, nhưng theo logic thì vẫn giữ)
 
             aiOutputParsed.classList.add('hidden');
             aiInput.classList.remove('hidden');
@@ -600,7 +601,7 @@
             isScanning = false;
             document.getElementById('stream-preview-wrapper').classList.add('hidden');
             hideApiError();
-            hasWarnedEdit = false; // Reset cờ hiện cảnh báo
+            hasWarnedEdit = false; 
         });
 
         btnReport.addEventListener('click', () => {
@@ -612,7 +613,6 @@
             reportModal.classList.remove('flex');
         });
 
-        // Global functions for hover effect
         window.focusText = function(id) {
             document.querySelectorAll('.raw-text').forEach(el => {
                 if (el.id !== id) {
@@ -641,7 +641,6 @@
             });
         };
 
-        // Xuất PDF
         btnDownloadPdf.addEventListener('click', () => {
             const element = document.getElementById('pdf-content');
             const opt = {
@@ -658,7 +657,6 @@
             });
         });
 
-        // Khởi tạo: textarea trống, không có cảnh báo, chưa phân tích
         aiInput.value = '';
         referenceText = '';
         hasBeenAnalyzed = false;
