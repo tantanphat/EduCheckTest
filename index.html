@@ -112,7 +112,7 @@
         <div class="flex-1 flex overflow-hidden relative">
 
             <!-- Cột marketing (chỉ hiện màn hình lớn & khi panel đóng) -->
-            <aside id="marketing-col" class="hidden lg:flex w-[360px] flex-shrink-0 flex-col justify-center px-10 xl:px-12">
+            <aside id="marketing-col" class="hidden lg:flex w-[360px] flex-shrink-0 flex-col justify-start pt-8 px-10 xl:px-12">
                 <h1 class="text-3xl xl:text-4xl font-extrabold leading-tight text-white mb-4">
                     Kiểm tra nội dung AI cùng <span class="grad-text">EduCheck</span>
                 </h1>
@@ -167,9 +167,12 @@
                     </div>
 
                     <div class="relative">
-                        <textarea id="ai-input" maxlength="10000" placeholder="Dán nội dung tại đây..." class="w-full h-64 sm:h-72 bg-transparent text-slate-200 placeholder-slate-500 resize-none outline-none leading-relaxed text-[15px]"></textarea>
+                        <textarea id="ai-input" maxlength="10000" placeholder="Dán nội dung tại đây..."
+                            class="w-full h-[45vh] sm:h-[50vh] lg:h-[55vh] bg-transparent text-slate-200 placeholder-slate-500 resize-none outline-none leading-relaxed text-[15px]"></textarea>
 
-                        <div id="ai-output-parsed" class="hidden text-slate-200 leading-relaxed text-[15px] space-y-2 outline-none whitespace-pre-wrap" style="white-space: pre-wrap;" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
+                        <div id="ai-output-parsed"
+                            class="hidden h-[45vh] sm:h-[50vh] lg:h-[55vh] overflow-y-auto text-slate-200 leading-relaxed text-[15px] space-y-2 outline-none whitespace-pre-wrap scroll-smooth"
+                            style="white-space: pre-wrap;" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
 
                         <div id="stream-preview-wrapper" class="hidden w-full mt-4">
                             <div class="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
@@ -277,8 +280,8 @@
                                 <div class="text-[10px] text-slate-500 font-semibold tracking-wide">SAI LỆCH</div>
                             </div>
                         </div>
-                        <div id="cards-container" class="space-y-2.5 flex-1 overflow-y-auto pr-1 pb-4"></div>
-                        <div class="mt-auto pt-4 border-t border-white/10">
+                        <div id="cards-container" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1 pb-4"></div>
+                        <div class="pt-4 border-t border-white/10">
                             <button id="btn-report" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-sm py-2.5 px-4 flex items-center justify-center gap-2 rounded-xl transition-colors">
                                 <span class="material-icons-round text-[18px]">assessment</span> Xuất Báo Cáo
                             </button>
@@ -512,6 +515,7 @@
         }
 
         function renderResults(dataArray) {
+            focusedId = null;
             let parsedHTML = '';
             let cardsHTML = '';
             let tableHTML = '';
@@ -548,7 +552,7 @@
                     pdfIcon = '🔴'; pdfStatusLabel = 'SAI LỆCH';
                 }
 
-                cardsHTML += `<div class="p-3 ${bgStr} ${borderStr} rounded-xl flex items-start gap-3 cursor-text transition-colors" onmouseover="focusText('${id}')" onmouseout="unfocusText()">
+                cardsHTML += `<div data-card-id="${id}" class="p-3 ${bgStr} ${borderStr} rounded-xl flex items-start gap-3 cursor-pointer transition-all" onclick="toggleFocusText('${id}')">
                     <span class="material-icons-round mt-0.5" style="color: ${colorStr}; font-size: 18px;">${icon}</span>
                     <div>
                         <h4 class="text-[13px] font-semibold text-white">${title}</h4>
@@ -706,6 +710,7 @@
             document.getElementById('stream-preview-wrapper').classList.add('hidden');
             hideApiError();
             hasWarnedEdit = false;
+            focusedId = null;
             updateCharCount();
         });
 
@@ -718,16 +723,37 @@
             reportModal.classList.remove('flex');
         });
 
+                                                    let focusedId = null;
+
+                                                    window.toggleFocusText = function (id) {
+                                                        if (focusedId === id) {
+                                                            unfocusText();
+                                                            focusedId = null;
+                                                        } else {
+                                                            focusText(id);
+                                                            focusedId = id;
+                                                        }
+                                                    };
+
         window.focusText = function(id) {
             document.querySelectorAll('.raw-text').forEach(el => {
                 if (el.id !== id) {
                     el.style.opacity = '0.4';
                     el.style.backgroundColor = 'transparent';
                     el.style.borderBottom = 'none';
+                } else {
+                    el.style.fontWeight = '600';
                 }
             });
+            document.querySelectorAll('#cards-container [data-card-id]').forEach(card => {
+                const isActive = card.dataset.cardId === id;
+                card.classList.toggle('ring-2', isActive);
+                card.classList.toggle('ring-white/30', isActive);
+            });
             const el = document.getElementById(id);
-            if (el) el.style.fontWeight = '600';
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         };
         window.unfocusText = function() {
             document.querySelectorAll('.raw-text').forEach(el => {
@@ -743,6 +769,9 @@
                     el.style.backgroundColor = 'rgba(239,68,68,0.18)';
                     el.style.borderBottom = '2px solid #ef4444';
                 }
+            });
+            document.querySelectorAll('#cards-container [data-card-id]').forEach(card => {
+                card.classList.remove('ring-2', 'ring-white/30');
             });
         };
 
