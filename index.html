@@ -3,200 +3,283 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EduCheck Pro — Windows Style</title>
+    <title>EduCheck — Kiểm tra nội dung AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Segoe UI"', 'Tahoma', 'Geneva', 'Verdana', 'sans-serif'] },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
                     colors: {
-                        primary: '#0078D4',
-                        success: '#107C10',
-                        warning: '#D83B01',
-                        danger: '#E81123',
-                        winbg: '#F3F3F3',
-                        winborder: '#CCCCCC'
+                        success: '#22c55e',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
                     }
                 }
             }
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 12px; height: 12px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background-color: #c1c1c1; border-radius: 0; border: 2px solid #f1f1f1; }
-        ::-webkit-scrollbar-thumb:hover { background-color: #a8a8a8; }
-        
-        .highlight-success { background-color: rgba(16, 124, 16, 0.15); border-bottom: 2px solid #107C10; transition: all 0.2s ease; }
-        .highlight-warning { background-color: rgba(234, 179, 8, 0.15); border-bottom: 2px solid #EAB308; transition: all 0.2s ease; }
-        .highlight-danger { background-color: rgba(232, 17, 35, 0.15); border-bottom: 2px solid #E81123; transition: all 0.2s ease; }
-        .raw-text { transition: all 0.2s ease; cursor: text; }
-        .raw-text:hover { background-color: rgba(0, 0, 0, 0.05); }
-        
-        .slide-in { animation: slideIn 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
-        
-        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #0078D4; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .win-shadow { box-shadow: 0 4px 16px rgba(0,0,0,0.15), 0 0 2px rgba(0,0,0,0.2); }
-        .win-dialog-shadow { box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 2px rgba(0,0,0,0.3); }
-        
-        .win-btn { border: 1px solid transparent; transition: all 0.1s; }
-        .win-btn:active { transform: scale(0.98); }
-        
-        .fade-in { animation: fadeIn 0.15s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(148,163,184,0.25); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(148,163,184,0.4); }
+
+        body { background: #05070f; }
+
+        .grad-text { background: linear-gradient(90deg,#60a5fa,#a78bfa,#c084fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .grad-bg { background: linear-gradient(135deg,#3b82f6,#8b5cf6); }
+        .grad-bg-hover:hover { filter: brightness(1.08); }
+
+        .glow-card { box-shadow: 0 0 0 1px rgba(99,102,241,0.18), 0 12px 40px -12px rgba(59,130,246,0.25); }
+        .glow-btn { box-shadow: 0 10px 30px -8px rgba(124,58,237,0.55); }
+
+        .ambient-blob { position: absolute; border-radius: 9999px; filter: blur(90px); pointer-events: none; }
+
+        .highlight-success { background-color: rgba(34,197,94,0.18); border-bottom: 2px solid #22c55e; transition: all .2s ease; border-radius: 3px; }
+        .highlight-warning { background-color: rgba(245,158,11,0.18); border-bottom: 2px solid #f59e0b; transition: all .2s ease; border-radius: 3px; }
+        .highlight-danger { background-color: rgba(239,68,68,0.18); border-bottom: 2px solid #ef4444; transition: all .2s ease; border-radius: 3px; }
+        .raw-text { transition: all .2s ease; cursor: text; }
+        .raw-text:hover { filter: brightness(1.3); }
+
+        .slide-in-right { animation: slideInRight .25s cubic-bezier(.16,1,.3,1) forwards; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(16px);} to { opacity: 1; transform: translateX(0);} }
+
+        .loader { border: 2.5px solid rgba(255,255,255,0.08); border-top: 2.5px solid #8b5cf6; border-radius: 50%; width: 20px; height: 20px; animation: spin .9s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+
+        .fade-in { animation: fadeIn .15s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0;} to { opacity: 1;} }
 
         @keyframes hintPulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 120, 212, 0.5); background-color: rgba(0, 120, 212, 0.1); }
-            70% { box-shadow: 0 0 0 6px rgba(0, 120, 212, 0); background-color: transparent; }
-            100% { box-shadow: 0 0 0 0 rgba(0, 120, 212, 0); background-color: transparent; }
+            0% { box-shadow: 0 0 0 0 rgba(139,92,246,.5); }
+            70% { box-shadow: 0 0 0 8px rgba(139,92,246,0); }
+            100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
         }
-        .hint-glow { animation: hintPulse 1.5s infinite; border-radius: 4px; }
+        .hint-glow { animation: hintPulse 1.5s infinite; border-radius: 8px; }
 
         @keyframes warningPulse {
-            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5); background-color: rgba(234, 179, 8, 0.1); }
-            70% { box-shadow: 0 0 0 8px rgba(234, 179, 8, 0); background-color: rgba(234, 179, 8, 0.15); }
-            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); background-color: rgba(234, 179, 8, 0.1); }
+            0% { box-shadow: 0 0 0 0 rgba(245,158,11,.5); background-color: rgba(245,158,11,.12); }
+            70% { box-shadow: 0 0 0 8px rgba(245,158,11,0); background-color: rgba(245,158,11,.18); }
+            100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); background-color: rgba(245,158,11,.12); }
         }
         .warning-glow { animation: warningPulse 1.5s infinite; }
+
+        /* Hiển thị / ẩn panel & cột marketing được điều khiển bằng inline style (JS)
+           để tránh xung đột với các class responsive của Tailwind (sm:, lg:...) */
+        #extension-panel { display: none; }
     </style>
 </head>
-<body class="bg-[#d9d9d9] h-screen w-full flex items-center justify-center font-sans overflow-hidden">
+<body class="min-h-screen w-full font-sans text-slate-200 overflow-x-hidden">
 
-    <div class="w-11/12 max-w-7xl h-[90vh] bg-white border border-gray-400 win-shadow flex flex-col overflow-hidden relative">
-        
-        <div class="h-10 bg-[#e3e3e3] flex items-center px-2 border-b border-gray-300 flex-shrink-0 select-none">
-            <div class="flex gap-1 h-full pt-1">
-                <div class="bg-white rounded-t-md px-4 flex items-center gap-2 border-x border-t border-gray-300 text-xs text-gray-800 shadow-sm relative top-[1px]">
-                    <span class="material-icons-round text-[14px]">public</span> Nhóm 10 điểm
+    <!-- Ambient background glow -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="ambient-blob w-[420px] h-[420px] bg-blue-600/20 -top-24 -left-24"></div>
+        <div class="ambient-blob w-[480px] h-[480px] bg-purple-600/20 top-1/3 -right-32"></div>
+        <div class="ambient-blob w-[380px] h-[380px] bg-indigo-600/10 bottom-0 left-1/4"></div>
+    </div>
+
+    <div class="relative z-10 min-h-screen flex flex-col">
+
+        <!-- ===== HEADER ===== -->
+        <header class="flex items-center justify-between gap-3 px-4 sm:px-8 py-4 border-b border-white/5 bg-[#070a14]/80 backdrop-blur-sm flex-wrap">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl grad-bg flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+                    <span class="material-icons-round text-white text-[20px]">verified_user</span>
                 </div>
+                <span class="text-xl font-extrabold tracking-tight text-white">Edu<span class="grad-text">Check</span></span>
             </div>
-            
-            <button id="toggleExtBtn" class="ml-auto px-3 py-1 hover:bg-[#c9c9c9] transition relative group rounded-sm" title="Mở EduCheck">
-                <span class="material-icons-round text-primary text-lg">verified_user</span>
-            </button>
-        </div>
 
-        <div class="flex-1 flex relative overflow-hidden bg-[#202020]">
-            <div class="flex-1 flex flex-col items-center pt-8 overflow-y-auto px-4 pb-20 w-full transition-all">
-                
-                <div class="w-full max-w-4xl flex mb-6">
-                    <div class="w-8 h-8 bg-[#0078D4] flex items-center justify-center text-white font-semibold mr-4 flex-shrink-0 border border-[#005a9e]">U</div>
-                    <div class="text-gray-200 pt-1 w-full font-medium text-sm">
+            <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+                <div class="hidden sm:flex items-center gap-1.5 border border-indigo-500/30 bg-indigo-500/5 rounded-lg px-3 py-1.5 text-xs font-medium text-indigo-300">
+                    <span class="material-icons-round text-[15px] text-indigo-400">star</span>
+                    Nhóm 10 điểm
+                </div>
+                <button id="toggleExtBtn" title="Mở EduCheck" class="w-9 h-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 transition-colors">
+                    <span class="material-icons-round text-[18px]">shield</span>
+                </button>
+                <button id="darkToggleBtn" title="Giao diện tối" class="w-9 h-9 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 transition-colors">
+                    <span class="material-icons-round text-[18px]">dark_mode</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ===== MAIN ===== -->
+        <div class="flex-1 flex overflow-hidden relative">
+
+            <!-- Cột marketing (chỉ hiện màn hình lớn & khi panel đóng) -->
+            <aside id="marketing-col" class="hidden lg:flex w-[360px] flex-shrink-0 flex-col justify-center px-10 xl:px-12">
+                <h1 class="text-3xl xl:text-4xl font-extrabold leading-tight text-white mb-4">
+                    Kiểm tra nội dung AI cùng <span class="grad-text">EduCheck</span>
+                </h1>
+                <p class="text-slate-400 text-sm leading-relaxed mb-8">
+                    Dán đoạn văn bạn muốn kiểm tra vào ô bên cạnh để phát hiện nội dung do AI tạo ra hoặc thiếu chính xác.
+                </p>
+
+                <div class="space-y-5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-lg grad-bg flex items-center justify-center flex-shrink-0">
+                            <span class="material-icons-round text-white text-[18px]">psychology</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-white">Phát hiện AI thông minh</div>
+                            <div class="text-xs text-slate-400">Công nghệ AI tiên tiến, độ chính xác cao</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-lg grad-bg flex items-center justify-center flex-shrink-0">
+                            <span class="material-icons-round text-white text-[18px]">shield</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-white">Bảo mật tuyệt đối</div>
+                            <div class="text-xs text-slate-400">Nội dung của bạn được bảo mật hoàn toàn</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-lg grad-bg flex items-center justify-center flex-shrink-0">
+                            <span class="material-icons-round text-white text-[18px]">bolt</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-white">Kết quả nhanh chóng</div>
+                            <div class="text-xs text-slate-400">Phân tích và trả kết quả chỉ trong vài giây</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Cột nội dung / chat -->
+            <div class="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 min-w-0">
+
+                <div class="w-full max-w-2xl flex mb-4">
+                    <div class="w-8 h-8 rounded-full grad-bg flex items-center justify-center text-white font-bold mr-3 flex-shrink-0 text-sm">U</div>
+                    <div class="text-slate-300 pt-1.5 w-full text-sm leading-relaxed">
                         Bạn có thể dán (paste) bất kỳ đoạn văn bản nào sinh ra từ AI vào ô bên dưới, sau đó dùng EduCheck để kiểm chứng.
                     </div>
                 </div>
 
-                <div class="w-full max-w-4xl flex bg-[#2d2d2d] border border-[#404040] p-6 shadow-sm relative">
-                    <div class="w-8 h-8 bg-[#107C10] flex items-center justify-center text-white font-bold mr-4 flex-shrink-0 border border-[#0b5c0b]">
-                        <span class="material-icons-round text-sm">smart_toy</span>
+                <div class="w-full max-w-2xl bg-[#0d1120] border border-indigo-500/20 rounded-2xl p-5 glow-card relative">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white mb-3 shadow-md shadow-emerald-500/20">
+                        <span class="material-icons-round text-[18px]">smart_toy</span>
                     </div>
-                    <div class="w-full relative">
-                        <textarea id="ai-input" class="w-full h-80 bg-transparent text-gray-200 resize-none outline-none leading-relaxed text-[15px]"></textarea>
 
-                        <div id="ai-output-parsed" class="hidden text-gray-200 leading-relaxed text-[15px] space-y-2 outline-none whitespace-pre-wrap" style="white-space: pre-wrap;" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
+                    <div class="relative">
+                        <textarea id="ai-input" maxlength="10000" placeholder="Dán nội dung tại đây..." class="w-full h-64 sm:h-72 bg-transparent text-slate-200 placeholder-slate-500 resize-none outline-none leading-relaxed text-[15px]"></textarea>
+
+                        <div id="ai-output-parsed" class="hidden text-slate-200 leading-relaxed text-[15px] space-y-2 outline-none whitespace-pre-wrap" style="white-space: pre-wrap;" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
 
                         <div id="stream-preview-wrapper" class="hidden w-full mt-4">
-                            <div class="flex items-center gap-2 mb-2 border-b border-[#404040] pb-2">
-                                <span class="material-icons-round text-[#0078D4] text-sm animate-pulse">sync</span>
-                                <span class="text-xs font-semibold text-[#0078D4]" id="stream-status-label">Đang chờ AI xử lý...</span>
-                                <span class="text-[11px] text-gray-400 ml-auto" id="stream-token-count">0 tokens</span>
+                            <div class="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
+                                <span class="material-icons-round text-indigo-400 text-sm animate-pulse">sync</span>
+                                <span class="text-xs font-semibold text-indigo-300" id="stream-status-label">Đang chờ AI xử lý...</span>
+                                <span class="text-[11px] text-slate-500 ml-auto" id="stream-token-count">0 tokens</span>
                             </div>
-                            <div id="stream-preview" class="text-gray-300 text-[13px] font-mono bg-[#1e1e1e] p-3 border border-[#333]"></div>
+                            <div id="stream-preview" class="text-slate-400 text-[12px] font-mono bg-black/30 p-3 rounded-lg border border-white/5 max-h-40 overflow-y-auto"></div>
                         </div>
                     </div>
+
+                    <div class="flex justify-end mt-2">
+                        <span id="char-count" class="text-[11px] text-slate-500 flex items-center gap-1">0 / 10.000 ký tự</span>
+                    </div>
+                </div>
+
+                <button id="btn-scan" class="w-full max-w-2xl mt-5 grad-bg grad-bg-hover glow-btn text-white font-semibold text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+                    <span class="material-icons-round text-[18px]">search</span>
+                    Kiểm tra với EduCheck
+                </button>
+
+                <div class="w-full max-w-2xl mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
+                    <span class="material-icons-round text-[14px] text-emerald-500">shield</span>
+                    Chúng tôi cam kết bảo mật tuyệt đối nội dung của bạn.
                 </div>
             </div>
 
-            <div id="edit-warning-label" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 hidden items-center gap-2 px-5 py-2.5 border border-[#EAB308] text-[#EAB308] text-[13px] font-medium rounded shadow-lg backdrop-blur-sm transition-all duration-300">
+            <!-- ===== NHÃN CẢNH BÁO CHỈNH SỬA ===== -->
+            <div id="edit-warning-label" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 hidden items-center gap-2 px-5 py-2.5 bg-[#161225]/95 border border-amber-500/50 text-amber-400 text-[13px] font-medium rounded-xl shadow-lg backdrop-blur-sm transition-all duration-300">
                 <span class="material-icons-round text-[18px]">info</span>
                 Nội dung yêu cầu để kiểm chứng đã bị chỉnh sửa
             </div>
 
-            <!-- Fix panel không đè lên textarea -->
+            <!-- ===== EXTENSION PANEL (KẾT QUẢ) ===== -->
             <div id="extension-panel"
-                class="h-full w-full sm:w-96 bg-[#f3f3f3] win-shadow border-l border-[#ccc] flex flex-col overflow-hidden slide-in flex-shrink-0 z-20"
-                style="display: none;">
-                <div class="bg-white border-b border-[#ccc] p-3 flex items-center justify-between z-10">
-                    <div class="flex items-center gap-2 text-[#0078D4]">
-                        <span class="material-icons-round text-lg">verified_user</span>
-                        <h2 class="font-semibold text-[15px] text-black">EduCheck Pro</h2>
+                class="flex-col fixed inset-0 z-40 sm:static sm:inset-auto sm:z-auto sm:w-[380px] sm:flex-shrink-0 sm:my-4 sm:mr-4 sm:rounded-2xl bg-[#0a0d18] sm:border sm:border-indigo-500/20 glow-card overflow-hidden slide-in-right">
+
+                <div class="bg-[#0d1120] border-b border-white/10 px-4 py-3.5 flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center gap-2 text-white">
+                        <span class="material-icons-round text-indigo-400 text-lg">verified_user</span>
+                        <h2 class="font-bold text-[15px]">EduCheck</h2>
                     </div>
-                    <button id="closeExt" class="text-gray-500 hover:text-black hover:bg-[#e5e5e5] p-1 transition-colors">
+                    <button id="closeExt" class="text-slate-400 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-colors">
                         <span class="material-icons-round text-[18px] block">close</span>
                     </button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto flex flex-col">
-                    <div id="state-intro" class="p-5 flex flex-col gap-4">
-                        <div class="bg-white p-4 border border-[#e5e5e5] shadow-sm">
-                            <h4 class="font-semibold text-gray-800 mb-2 flex items-center text-sm">
-                                <span class="material-icons-round text-[16px] mr-2 text-[#0078D4]">vpn_key</span> Cấu hình API
-                            </h4>
-                            <p class="text-gray-600 text-[12px] mb-3">Vui lòng cung cấp Gemini API Key để bắt đầu kiểm chứng.</p>
-                            <input type="password" id="gemini-key" class="w-full text-[13px] p-2 border border-[#ccc] outline-none focus:border-[#0078D4] focus:ring-1 focus:ring-[#0078D4] bg-white transition-all rounded-sm" placeholder="Nhập API Key tại đây..." />
-                            <div class="flex justify-between items-center mt-2">
-                                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-[#0078D4] hover:underline">Lấy Key miễn phí</a>
-                                <span class="text-[11px] text-gray-500">Model: gemini-2.5-flash</span>
-                            </div>
-                            <div id="api-error-detail" class="hidden text-[12px] text-[#E81123] mt-2 bg-[#FDE7E9] p-2 border border-[#F9D0C4]"></div>
-                        </div>
 
-                        <div class="text-center py-6 mt-4">
-                            <button id="btn-scan" class="w-full win-btn bg-[#0078D4] hover:bg-[#006cbd] text-white font-medium text-sm py-2.5 px-4 shadow-sm flex items-center justify-center gap-2 rounded-sm">
-                                <span class="material-icons-round text-[18px]">policy</span>
-                                Kiểm chứng văn bản
-                            </button>
+                    <!-- STATE: INTRO -->
+                    <div id="state-intro" class="p-5 flex flex-col gap-4">
+                        <div class="bg-[#0d1120] p-4 border border-white/10 rounded-xl">
+                            <h4 class="font-semibold text-white mb-2 flex items-center text-sm">
+                                <span class="material-icons-round text-[16px] mr-2 text-indigo-400">vpn_key</span> Cấu hình API
+                            </h4>
+                            <p class="text-slate-400 text-[12px] mb-3">Vui lòng cung cấp Gemini API Key để bắt đầu kiểm chứng.</p>
+                            <input type="password" id="gemini-key" class="w-full text-[13px] p-2.5 border border-white/10 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-black/30 text-white transition-all rounded-lg" placeholder="Nhập API Key tại đây..." />
+                            <div class="flex justify-between items-center mt-2">
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-indigo-400 hover:underline">Lấy Key miễn phí</a>
+                                <span class="text-[11px] text-slate-500">Model: gemini-2.5-flash</span>
+                            </div>
+                            <div id="api-error-detail" class="hidden text-[12px] text-red-400 mt-2 bg-red-500/10 p-2 border border-red-500/30 rounded-lg"></div>
                         </div>
+                        <p class="text-center text-[12px] text-slate-500 mt-2">Dán văn bản và nhấn "Kiểm tra với EduCheck" để bắt đầu.</p>
                     </div>
 
+                    <!-- STATE: SCANNING -->
                     <div id="state-scanning" class="hidden flex-col h-full p-5">
-                        <div class="flex items-center justify-between mb-3 border-b border-[#ccc] pb-2">
-                            <h3 class="font-semibold text-gray-800 flex items-center gap-2 text-sm">
-                                <span class="loader border-[#ccc] border-t-[#0078D4] w-4 h-4 border-2"></span>
+                        <div class="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
+                            <h3 class="font-semibold text-white flex items-center gap-2 text-sm">
+                                <span class="loader"></span>
                                 Đang phân tích...
                             </h3>
-                            <button id="btn-abort" class="text-[12px] text-[#E81123] hover:underline flex items-center">
+                            <button id="btn-abort" class="text-[12px] text-red-400 hover:underline flex items-center">
                                 Hủy bỏ
                             </button>
                         </div>
-                        <div class="bg-[#202020] border border-[#444] p-3 flex-1 flex flex-col overflow-hidden rounded-sm">
+                        <div class="bg-black/30 border border-white/10 p-3 flex-1 flex flex-col overflow-hidden rounded-xl">
                             <div class="flex flex-col items-center justify-center h-full gap-3">
-                                <span class="material-icons-round text-[#0078D4] text-3xl animate-pulse">cloud_sync</span>
-                                <div id="stream-preview2" class="text-[#cccccc] text-[13px] font-mono text-center">Đang gọi dữ liệu từ API chuẩn...</div>
+                                <span class="material-icons-round text-indigo-400 text-3xl animate-pulse">cloud_sync</span>
+                                <div id="stream-preview2" class="text-slate-400 text-[13px] font-mono text-center">Đang gọi dữ liệu từ API chuẩn...</div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- STATE: RESULTS -->
                     <div id="state-results" class="hidden flex-col h-full p-5">
-                        <div class="flex items-center justify-between mb-4 border-b border-[#ccc] pb-2">
-                            <h3 class="font-semibold text-gray-800 text-sm">Kết quả phân tích</h3>
-                            <button id="btn-reset" class="text-[12px] text-[#0078D4] hover:underline flex items-center rounded px-1 transition-all">
+                        <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
+                            <h3 class="font-semibold text-white text-sm">Kết quả phân tích</h3>
+                            <button id="btn-reset" class="text-[12px] text-indigo-400 hover:underline flex items-center rounded px-1 transition-all">
                                 <span class="material-icons-round text-[14px] mr-1">refresh</span>Quét lại
                             </button>
                         </div>
-                        <div class="flex bg-white border border-[#e5e5e5] shadow-sm mb-4 rounded-sm">
-                            <div class="text-center flex-1 py-2 border-r border-[#e5e5e5]">
-                                <div id="count-success" class="text-xl font-bold text-[#107C10]">0</div>
-                                <div class="text-[10px] text-gray-500 font-semibold">ĐÁNG TIN</div>
+                        <div class="flex bg-[#0d1120] border border-white/10 rounded-xl mb-4 overflow-hidden">
+                            <div class="text-center flex-1 py-3 border-r border-white/10">
+                                <div id="count-success" class="text-xl font-bold text-emerald-400">0</div>
+                                <div class="text-[10px] text-slate-500 font-semibold tracking-wide">ĐÁNG TIN</div>
                             </div>
-                            <div class="text-center flex-1 py-2 border-r border-[#e5e5e5]">
-                                <div id="count-warning" class="text-xl font-bold text-[#EAB308]">0</div>
-                                <div class="text-[10px] text-gray-500 font-semibold">CẦN XÁC MINH</div>
+                            <div class="text-center flex-1 py-3 border-r border-white/10">
+                                <div id="count-warning" class="text-xl font-bold text-amber-400">0</div>
+                                <div class="text-[10px] text-slate-500 font-semibold tracking-wide">CẦN XÁC MINH</div>
                             </div>
-                            <div class="text-center flex-1 py-2">
-                                <div id="count-danger" class="text-xl font-bold text-[#E81123]">0</div>
-                                <div class="text-[10px] text-gray-500 font-semibold">SAI LỆCH</div>
+                            <div class="text-center flex-1 py-3">
+                                <div id="count-danger" class="text-xl font-bold text-red-400">0</div>
+                                <div class="text-[10px] text-slate-500 font-semibold tracking-wide">SAI LỆCH</div>
                             </div>
                         </div>
-                        <div id="cards-container" class="space-y-2 flex-1 overflow-y-auto pr-1 pb-4"></div>
-                        <div class="mt-auto pt-4 border-t border-[#ccc]">
-                            <button id="btn-report" class="w-full win-btn bg-[#2b2b2b] hover:bg-[#1a1a1a] text-white font-medium text-sm py-2 px-4 shadow-sm flex items-center justify-center gap-2 rounded-sm">
+                        <div id="cards-container" class="space-y-2.5 flex-1 overflow-y-auto pr-1 pb-4"></div>
+                        <div class="mt-auto pt-4 border-t border-white/10">
+                            <button id="btn-report" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-sm py-2.5 px-4 flex items-center justify-center gap-2 rounded-xl transition-colors">
                                 <span class="material-icons-round text-[18px]">assessment</span> Xuất Báo Cáo
                             </button>
                         </div>
@@ -204,31 +287,32 @@
                 </div>
             </div>
 
-            <div id="report-modal" class="absolute inset-0 bg-[rgba(0,0,0,0.4)] z-50 hidden items-center justify-center p-6 fade-in">
-                <div class="bg-white w-full max-w-4xl win-dialog-shadow flex flex-col border border-[#999] rounded-sm">
-                    <div class="bg-white px-3 py-2 flex justify-between items-center border-b border-[#e5e5e5]">
-                        <div class="flex items-center gap-2">
-                            <span class="material-icons-round text-[#0078D4] text-[16px]">picture_as_pdf</span>
-                            <span class="text-[12px] text-gray-800">Trình xem trước báo cáo</span>
+            <!-- ===== REPORT MODAL ===== -->
+            <div id="report-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 sm:p-6 fade-in">
+                <div class="bg-[#0d1120] w-full max-w-4xl border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+                    <div class="px-4 py-3 flex justify-between items-center border-b border-white/10 flex-shrink-0">
+                        <div class="flex items-center gap-2 text-white">
+                            <span class="material-icons-round text-indigo-400 text-[18px]">picture_as_pdf</span>
+                            <span class="text-[13px] font-medium">Trình xem trước báo cáo</span>
                         </div>
-                        <button id="close-modal" class="hover:bg-[#E81123] hover:text-white px-2 py-1 text-gray-600 transition-colors">
-                            <span class="material-icons-round text-[16px] block">close</span>
-                        </button>
-                    </div>
-                    
-                    <div class="bg-[#f3f3f3] px-3 py-1.5 border-b border-[#e5e5e5] flex gap-2">
-                        <button id="btn-download-pdf" class="win-btn bg-white border border-[#ccc] hover:bg-[#e5e5e5] px-3 py-1 text-[12px] flex items-center gap-1 shadow-sm rounded-sm">
-                            <span class="material-icons-round text-[14px] text-[#D83B01]">save_alt</span> Lưu thành PDF
+                        <button id="close-modal" class="hover:bg-red-500/20 hover:text-red-400 p-1.5 text-slate-400 rounded-lg transition-colors">
+                            <span class="material-icons-round text-[18px] block">close</span>
                         </button>
                     </div>
 
-                    <div class="p-6 overflow-y-auto bg-[#e5e5e5] flex-1 max-h-[65vh]">
-                        <!-- Template PDF MỚI cập nhật font, ngày giờ, số token, thanh trạng thái % -->
-                        <div id="pdf-content" class="bg-white p-10 win-shadow mx-auto text-left whitespace-pre-wrap" style="width:100%; max-width: 800px; font-family: Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
+                    <div class="px-4 py-2.5 border-b border-white/10 flex gap-2 flex-shrink-0">
+                        <button id="btn-download-pdf" class="grad-bg grad-bg-hover px-3 py-1.5 text-[12px] text-white flex items-center gap-1.5 rounded-lg font-medium transition-all">
+                            <span class="material-icons-round text-[14px]">save_alt</span> Lưu thành PDF
+                        </button>
+                    </div>
+
+                    <div class="p-4 sm:p-6 overflow-y-auto bg-[#05070f] flex-1">
+                        <!-- Nội dung PDF: giữ nền trắng để xuất file in ấn rõ ràng -->
+                        <div id="pdf-content" class="bg-white text-black p-6 sm:p-10 mx-auto text-left whitespace-pre-wrap rounded-lg" style="width:100%; max-width: 800px; font-family: Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.6;">
                             <div class="text-center mb-6">
                                 <div class="font-bold text-[18px]">BÁO CÁO KIỂM CHỨNG THÔNG TIN AI</div>
                                 <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
-                                <div class="text-[14px]">EduCheck Pro </div>
+                                <div class="text-[14px]">EduCheck</div>
                             </div>
 
                             <div class="mb-2">
@@ -245,10 +329,10 @@
                                 <br>
                                 <div>  Độ tin cậy tổng thể: <span id="pdf-trust-bar"></span></div>
                             </div>
-                            
+
                             <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
                             <div class="font-bold mb-4">  📄 PHÂN TÍCH CHI TIẾT</div>
-                            
+
                             <div id="report-table-body" class="space-y-4 mb-4"></div>
 
                             <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
@@ -257,23 +341,24 @@
                 </div>
             </div>
 
-            <div id="alert-modal" class="absolute inset-0 bg-[rgba(255,255,255,0.2)] z-50 hidden items-center justify-center fade-in">
-                <div class="bg-[#f0f0f0] w-full max-w-sm win-dialog-shadow border border-[#999] flex flex-col font-sans rounded-sm">
-                    <div class="flex justify-between items-center bg-white px-3 py-2 border-b border-[#dfdfdf]">
-                        <div class="text-[12px] text-gray-800" id="alert-window-title">EduCheck Pro</div>
-                        <button id="btn-close-alert-x" class="hover:bg-[#E81123] hover:text-white px-2 py-0.5 text-gray-500 transition-colors">
+            <!-- ===== ALERT MODAL ===== -->
+            <div id="alert-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center fade-in p-4">
+                <div class="bg-[#0d1120] w-full max-w-sm border border-white/10 rounded-2xl shadow-2xl flex flex-col font-sans">
+                    <div class="flex justify-between items-center px-4 py-3 border-b border-white/10">
+                        <div class="text-[13px] font-medium text-white" id="alert-window-title">EduCheck</div>
+                        <button id="btn-close-alert-x" class="hover:bg-red-500/20 hover:text-red-400 p-1 text-slate-400 rounded-lg transition-colors">
                             <span class="material-icons-round text-[16px] block">close</span>
                         </button>
                     </div>
-                    <div class="flex items-start gap-4 p-5 bg-white">
-                        <span id="alert-icon" class="material-icons-round text-3xl text-[#0078D4]">info</span>
+                    <div class="flex items-start gap-4 p-5">
+                        <span id="alert-icon" class="material-icons-round text-3xl text-indigo-400">info</span>
                         <div>
-                            <h3 id="alert-title" class="text-[#003399] text-[15px] mb-1">Thông báo</h3>
-                            <p id="alert-message" class="text-[13px] text-gray-700 leading-relaxed">Message</p>
+                            <h3 id="alert-title" class="text-white text-[15px] mb-1 font-semibold">Thông báo</h3>
+                            <p id="alert-message" class="text-[13px] text-slate-400 leading-relaxed">Message</p>
                         </div>
                     </div>
-                    <div class="bg-[#f0f0f0] px-4 py-3 flex justify-end border-t border-[#dfdfdf]">
-                        <button id="btn-close-alert" class="win-btn bg-[#e1e1e1] hover:bg-[#d8d8d8] border border-[#adadad] px-6 py-1 text-[13px] text-black focus:outline-none focus:border-[#0078D4] rounded-sm">OK</button>
+                    <div class="px-4 py-3 flex justify-end border-t border-white/10">
+                        <button id="btn-close-alert" class="grad-bg grad-bg-hover px-6 py-1.5 text-[13px] text-white font-medium rounded-lg transition-all">OK</button>
                     </div>
                 </div>
             </div>
@@ -285,6 +370,7 @@
 
         const toggleExtBtn = document.getElementById('toggleExtBtn');
         const extensionPanel = document.getElementById('extension-panel');
+        const marketingCol = document.getElementById('marketing-col');
         const closeExtBtn = document.getElementById('closeExt');
         const stateIntro = document.getElementById('state-intro');
         const stateScanning = document.getElementById('state-scanning');
@@ -307,18 +393,34 @@
         const apiKeyInput = document.getElementById('gemini-key');
         const errorDetail = document.getElementById('api-error-detail');
         const editWarningLabel = document.getElementById('edit-warning-label');
+        const charCount = document.getElementById('char-count');
 
         const MODEL_NAME = 'gemini-2.5-flash';
+        const MAX_CHARS = 10000;
         let isScanning = false;
         let hasBeenAnalyzed = false;
         let referenceText = '';
         let hasWarnedEdit = false;
 
+        // ---- Mở / đóng bảng EduCheck (đồng thời ẩn/hiện cột marketing) ----
+        function setPanelOpen(isOpen) {
+            extensionPanel.style.display = isOpen ? 'flex' : 'none';
+            // Khi panel mở, ẩn cột marketing (kể cả trên màn hình lớn) để nhường chỗ cho panel,
+            // giống hành vi trong ảnh thiết kế mẫu. Khi đóng, trả lại quyền điều khiển cho class Tailwind (lg:flex).
+            if (marketingCol) marketingCol.style.display = isOpen ? 'none' : '';
+        }
+
+        toggleExtBtn.addEventListener('click', () => {
+            const isCurrentlyOpen = extensionPanel.style.display === 'flex';
+            setPanelOpen(!isCurrentlyOpen);
+        });
+        closeExtBtn.addEventListener('click', () => setPanelOpen(false));
+
         function hideWarning() {
             editWarningLabel.classList.add('hidden');
             editWarningLabel.classList.remove('flex', 'warning-glow');
-            document.getElementById('toggleExtBtn').classList.remove('hint-glow');
-            document.getElementById('btn-reset').classList.remove('hint-glow');
+            toggleExtBtn.classList.remove('hint-glow');
+            btnReset.classList.remove('hint-glow');
             hasWarnedEdit = false;
         }
 
@@ -326,8 +428,8 @@
             if (!hasWarnedEdit) {
                 editWarningLabel.classList.remove('hidden');
                 editWarningLabel.classList.add('flex', 'warning-glow');
-                document.getElementById('toggleExtBtn').classList.add('hint-glow');
-                document.getElementById('btn-reset').classList.add('hint-glow');
+                toggleExtBtn.classList.add('hint-glow');
+                btnReset.classList.add('hint-glow');
                 hasWarnedEdit = true;
             }
         }
@@ -338,10 +440,10 @@
             const iconEl = document.getElementById('alert-icon');
             if (isError) {
                 iconEl.innerText = 'error';
-                iconEl.className = 'material-icons-round text-3xl text-[#E81123]';
+                iconEl.className = 'material-icons-round text-3xl text-red-400';
             } else {
                 iconEl.innerText = 'info';
-                iconEl.className = 'material-icons-round text-3xl text-[#0078D4]';
+                iconEl.className = 'material-icons-round text-3xl text-indigo-400';
             }
             alertModal.classList.remove('hidden');
             alertModal.classList.add('flex');
@@ -354,6 +456,11 @@
         document.getElementById('btn-close-alert').addEventListener('click', closeAlert);
         document.getElementById('btn-close-alert-x').addEventListener('click', closeAlert);
 
+        function updateCharCount() {
+            const len = aiInput.classList.contains('hidden') ? aiOutputParsed.innerText.length : aiInput.value.length;
+            charCount.innerText = `${len.toLocaleString('vi-VN')} / ${MAX_CHARS.toLocaleString('vi-VN')} ký tự`;
+        }
+
         function handleTextChange() {
             const currentText = aiInput.classList.contains('hidden') ? aiOutputParsed.innerText : aiInput.value;
             if (hasBeenAnalyzed) {
@@ -363,15 +470,11 @@
                     hideWarning();
                 }
             }
+            updateCharCount();
         }
 
         aiInput.addEventListener('input', handleTextChange);
         aiOutputParsed.addEventListener('input', handleTextChange);
-
-        toggleExtBtn.addEventListener('click', () => {
-            extensionPanel.style.display = extensionPanel.style.display === 'none' ? 'flex' : 'none';
-        });
-        closeExtBtn.addEventListener('click', () => extensionPanel.style.display = 'none');
 
         function showApiError(message) {
             errorDetail.classList.remove('hidden');
@@ -421,7 +524,7 @@
                 const id = `chunk-${index}`;
                 counts[item.status] = counts[item.status] || 0;
                 counts[item.status]++;
-                
+
                 const pos = originalInputText.indexOf(item.segment, currentTextIndex);
                 if (pos !== -1) {
                     const prefix = originalInputText.substring(currentTextIndex, pos);
@@ -433,26 +536,26 @@
 
                 let icon, title, colorStr, bgStr, borderStr;
                 let pdfIcon, pdfStatusLabel;
-                
+
                 if (item.status === 'success') {
-                    icon = 'check_circle'; title = 'Đáng tin cậy'; colorStr = '#107C10'; bgStr = 'bg-white'; borderStr = 'border-l-4 border-l-[#107C10] border-y border-r border-[#e5e5e5]'; 
+                    icon = 'check_circle'; title = 'Đáng tin cậy'; colorStr = '#22c55e'; bgStr = 'bg-emerald-500/10'; borderStr = 'border border-emerald-500/30 border-l-4 border-l-emerald-500';
                     pdfIcon = '🟢'; pdfStatusLabel = 'ĐÚNG';
                 } else if (item.status === 'warning') {
-                    icon = 'warning'; title = 'Cần xác minh'; colorStr = '#EAB308'; bgStr = 'bg-[#FEF9C3]'; borderStr = 'border border-[#FDE047] border-l-4 border-l-[#EAB308]'; 
+                    icon = 'warning'; title = 'Cần xác minh thêm'; colorStr = '#f59e0b'; bgStr = 'bg-amber-500/10'; borderStr = 'border border-amber-500/30 border-l-4 border-l-amber-500';
                     pdfIcon = '🟡'; pdfStatusLabel = 'CẦN XÁC MINH';
                 } else {
-                    icon = 'error'; title = 'Bịa đặt / Sai lệch'; colorStr = '#E81123'; bgStr = 'bg-[#FDE7E9]'; borderStr = 'border border-[#F9D0C4] border-l-4 border-l-[#E81123]'; 
+                    icon = 'error'; title = 'Bịa đặt / Sai lệch'; colorStr = '#ef4444'; bgStr = 'bg-red-500/10'; borderStr = 'border border-red-500/30 border-l-4 border-l-red-500';
                     pdfIcon = '🔴'; pdfStatusLabel = 'SAI LỆCH';
                 }
 
-                cardsHTML += `<div class="p-3 ${bgStr} ${borderStr} flex items-start gap-3 cursor-text transition-colors" onmouseover="focusText('${id}')" onmouseout="unfocusText()">
+                cardsHTML += `<div class="p-3 ${bgStr} ${borderStr} rounded-xl flex items-start gap-3 cursor-text transition-colors" onmouseover="focusText('${id}')" onmouseout="unfocusText()">
                     <span class="material-icons-round mt-0.5" style="color: ${colorStr}; font-size: 18px;">${icon}</span>
                     <div>
-                        <h4 class="text-[13px] font-semibold text-black">${title}</h4>
-                        <p class="text-[12px] text-gray-700 mt-1">${item.reason}</p>
+                        <h4 class="text-[13px] font-semibold text-white">${title}</h4>
+                        <p class="text-[12px] text-slate-300 mt-1">${item.reason}</p>
                     </div>
                 </div>`;
-                
+
                 tableHTML += `
                 <div class="mb-4 pl-4 pr-2">
                     <div class="font-bold">${pdfIcon} ${pdfStatusLabel} – Luận điểm ${index + 1}:</div>
@@ -474,8 +577,7 @@
             document.getElementById('count-danger').innerText = counts.danger;
             cardsContainer.innerHTML = cardsHTML;
             reportTableBody.innerHTML = tableHTML;
-            
-            // Xử lý tự động tính phần trăm cho thanh trạng thái độ tin cậy của file PDF
+
             const totalItems = counts.success + counts.warning + counts.danger;
             const percent = totalItems === 0 ? 0 : Math.round((counts.success / totalItems) * 100);
             const solidBlocks = Math.round(percent / 10);
@@ -487,12 +589,10 @@
             document.getElementById('pdf-summary-danger').innerText = counts.danger;
             document.getElementById('pdf-trust-bar').innerText = `${trustBarStr}  ${percent}%`;
 
-            // Lấy ngày giờ thực tế
             const now = new Date();
             const timeStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
             document.getElementById('pdf-date').innerText = timeStr;
-            
-            // Lấy token
+
             const tokenStr = document.getElementById('stream-token-count').innerText.replace(' tokens', '');
             document.getElementById('pdf-tokens').innerText = tokenStr;
 
@@ -507,10 +607,14 @@
             hasBeenAnalyzed = true;
             referenceText = aiOutputParsed.innerText;
             hideWarning();
+            updateCharCount();
         }
 
         btnScan.addEventListener('click', async () => {
             hideWarning();
+            // Mở panel để người dùng thấy tiến trình / cấu hình API nếu cần
+            setPanelOpen(true);
+
             let textToAnalyze = aiInput.value;
             if (aiInput.classList.contains('hidden')) {
                 textToAnalyze = aiOutputParsed.innerText;
@@ -601,7 +705,8 @@
             isScanning = false;
             document.getElementById('stream-preview-wrapper').classList.add('hidden');
             hideApiError();
-            hasWarnedEdit = false; 
+            hasWarnedEdit = false;
+            updateCharCount();
         });
 
         btnReport.addEventListener('click', () => {
@@ -629,14 +734,14 @@
                 el.style.opacity = '1';
                 el.style.fontWeight = 'normal';
                 if (el.classList.contains('highlight-success')) {
-                    el.style.backgroundColor = 'rgba(16, 124, 16, 0.15)';
-                    el.style.borderBottom = '2px solid #107C10';
+                    el.style.backgroundColor = 'rgba(34,197,94,0.18)';
+                    el.style.borderBottom = '2px solid #22c55e';
                 } else if (el.classList.contains('highlight-warning')) {
-                    el.style.backgroundColor = 'rgba(234, 179, 8, 0.15)';
-                    el.style.borderBottom = '2px solid #EAB308';
+                    el.style.backgroundColor = 'rgba(245,158,11,0.18)';
+                    el.style.borderBottom = '2px solid #f59e0b';
                 } else if (el.classList.contains('highlight-danger')) {
-                    el.style.backgroundColor = 'rgba(232, 17, 35, 0.15)';
-                    el.style.borderBottom = '2px solid #E81123';
+                    el.style.backgroundColor = 'rgba(239,68,68,0.18)';
+                    el.style.borderBottom = '2px solid #ef4444';
                 }
             });
         };
@@ -651,16 +756,24 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             const originalText = btnDownloadPdf.innerHTML;
-            btnDownloadPdf.innerHTML = '<span class="loader border-[#ccc] border-t-[#D83B01] w-3 h-3 border border-white mr-1"></span> Đang lưu...';
+            btnDownloadPdf.innerHTML = '<span class="loader w-3 h-3 mr-1" style="border-width:2px;"></span> Đang lưu...';
             html2pdf().set(opt).from(element).save().then(() => {
                 btnDownloadPdf.innerHTML = originalText;
             });
         });
 
+        // Nút giao diện tối: chỉ mang tính trang trí (giao diện mặc định đã ở chế độ tối)
+        document.getElementById('darkToggleBtn').addEventListener('click', () => {
+            showAlert('Giao diện', 'EduCheck hiện đang sử dụng giao diện tối mặc định.', false);
+        });
+
+        // Khởi tạo
         aiInput.value = '';
         referenceText = '';
         hasBeenAnalyzed = false;
         hideWarning();
+        updateCharCount();
+        setPanelOpen(false);
     </script>
 </body>
 </html>
