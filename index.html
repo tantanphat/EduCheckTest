@@ -241,7 +241,7 @@
                             <input type="password" id="gemini-key" class="w-full text-[13px] p-2.5 border border-white/10 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-black/30 text-white transition-all rounded-lg" placeholder="Nhập API Key tại đây..." />
                             <div class="flex justify-between items-center mt-2">
                                 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-indigo-400 hover:underline">Lấy Key miễn phí</a>
-                                <span class="text-[11px] text-slate-500">Model: gemini-2.5-flash</span>
+                                <span class="text-[11px] text-slate-500">Model: gemini-3.5-flash-lite</span>
                             </div>
                             <div id="api-error-detail" class="hidden text-[12px] text-red-400 mt-2 bg-red-500/10 p-2 border border-red-500/30 rounded-lg"></div>
                         </div>
@@ -407,7 +407,7 @@
         const editWarningLabel = document.getElementById('edit-warning-label');
         const charCount = document.getElementById('char-count');
 
-        const MODEL_NAME = 'gemini-2.5-flash';
+        const MODEL_NAME = 'gemini-3.5-flash-lite';
         const MAX_CHARS = 10000;
         let isScanning = false;
         let hasBeenAnalyzed = false;
