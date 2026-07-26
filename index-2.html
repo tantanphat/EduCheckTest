@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduCheck — Critical Thinking Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        success: '#22c55e',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(148,163,184,0.25); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(148,163,184,0.4); }
+
+        body {
+            background:
+                radial-gradient(circle at 50% 100%, rgba(248,214,226,0.75) 0%, transparent 42%),
+                linear-gradient(180deg, #D6ECF8 0%, #E6EAFB 58%, #F8D6E2 100%);
+        }
+
+        .grad-text { background: linear-gradient(90deg,#6BA6E9,#8B7CF6,#C48BEA); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .grad-bg { background: linear-gradient(135deg,#7BB8F3 0%, #8B7CF6 60%, #B78AF2 100%); }
+        .grad-bg-hover:hover { filter: brightness(1.08); }
+        .soft-card {
+            background: rgba(255,255,255,0.68);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(139,124,246,0.15);
+            box-shadow: 0 8px 28px rgba(139,124,246,0.08);
+        }
+
+        .feature-icon {
+            background: rgba(139,124,246,0.12);
+            border: 1px solid rgba(139,124,246,0.18);
+            color: #7C6EF5;
+            box-shadow: 0 4px 12px rgba(139,124,246,0.08);
+        }
+
+        .header-soft {
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(139,124,246,0.12);
+        }
+
+        .glow-card { box-shadow: 0 0 0 1px rgba(99,102,241,0.18), 0 12px 40px -12px rgba(59,130,246,0.25); }
+        .glow-btn { box-shadow: 0 10px 30px -8px rgba(124,58,237,0.55); }
+
+        .ambient-blob { position: absolute; border-radius: 9999px; filter: blur(90px); pointer-events: none; }
+
+        .highlight-low { background-color: rgba(34,197,94,0.18); border-bottom: 2px solid #22c55e; border-radius: 3px; }
+        .highlight-medium { background-color: rgba(245,158,11,0.18); border-bottom: 2px solid #f59e0b; border-radius: 3px; }
+        .highlight-high { background-color: rgba(239,68,68,0.18); border-bottom: 2px solid #ef4444; border-radius: 3px; }
+        .raw-text { transition: all .2s ease; cursor: text; }
+        .raw-text:hover { filter: brightness(1.3); }
+
+        .slide-in-right { animation: slideInRight .25s cubic-bezier(.16,1,.3,1) forwards; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(16px);} to { opacity: 1; transform: translateX(0);} }
+
+        .loader { border: 2.5px solid rgba(255,255,255,0.08); border-top: 2.5px solid #8b5cf6; border-radius: 50%; width: 20px; height: 20px; animation: spin .9s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+
+        .fade-in { animation: fadeIn .15s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0;} to { opacity: 1;} }
+
+        @keyframes hintPulse {
+            0% { box-shadow: 0 0 0 0 rgba(139,92,246,.5); }
+            70% { box-shadow: 0 0 0 8px rgba(139,92,246,0); }
+            100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+        }
+        .hint-glow { animation: hintPulse 1.5s infinite; border-radius: 8px; }
+
+        @keyframes warningPulse {
+            0% { box-shadow: 0 0 0 0 rgba(245,158,11,.5); }
+            70% { box-shadow: 0 0 0 10px rgba(245,158,11,0); }
+            100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+        }
+        .warning-glow { animation: warningPulse 1.6s infinite; }
+
+        .detail-chevron { transition: transform .2s ease; }
+        .detail-chevron.rotated { transform: rotate(180deg); }
+
+        #extension-panel { display: none; }
+
+        .clickable-segment { cursor:pointer; border-radius:8px; transition:all .2s ease; position:relative; }
+        .clickable-segment:hover { transform:translateY(-1px); box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+        .clickable-segment.active-segment { box-shadow:0 0 0 3px rgba(99,102,241,.35); transform:translateY(-1px); }
+        .result-card { transition:all .25s ease; }
+        .result-card:hover { transform:translateY(-1px); }
+        .result-card.active-card { transform:scale(1.02); box-shadow:0 10px 30px rgba(99,102,241,.25); border-color:rgba(99,102,241,.45)!important; }
+
+        @keyframes segmentPulse { 0%{ box-shadow:0 0 0 0 rgba(99,102,241,.55); } 100%{ box-shadow:0 0 0 14px rgba(99,102,241,0); } }
+        .segment-pulse { animation:segmentPulse 1.1s ease; }
+
+        .pipeline-step { transition: all .3s ease; }
+        .pipeline-step.active { background: rgba(139,124,246,0.15); border-color: #8b7cf6; }
+        .pipeline-step.done { background: rgba(34,197,94,0.12); border-color: #22c55e; }
+        .pipeline-step .step-icon { transition: all .3s ease; }
+        .pipeline-step.active .step-icon { color: #8b7cf6; }
+        .pipeline-step.done .step-icon { color: #22c55e; }
+        .pipeline-connector { height: 2px; flex: 1; background: rgba(139,124,246,0.15); transition: all .5s ease; }
+        .pipeline-connector.done { background: #22c55e; }
+
+        .reflection-log-entry { border-left: 3px solid #8b7cf6; padding-left: 12px; margin-bottom: 8px; }
+        
+        .rating-btn { transition: all 0.15s ease-in-out; }
+    </style>
+</head>
+<body class="min-h-screen w-full font-sans text-slate-800 overflow-x-hidden">
+
+    <!-- Ambient background glow -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="ambient-blob w-[420px] h-[420px] bg-[#BFE3F7]/40 -top-24 -left-24"></div>
+        <div class="ambient-blob w-[480px] h-[480px] bg-[#D9D2FA]/40 top-1/3 -right-32"></div>
+        <div class="ambient-blob w-[380px] h-[380px] bg-[#F5C9D8]/35 bottom-0 left-1/4"></div>
+    </div>
+
+    <div class="relative z-10 min-h-screen flex flex-col">
+
+        <!-- ===== HEADER ===== -->
+        <header class="flex items-center justify-between gap-3 px-4 sm:px-8 py-4 border-b border-white/5 header-soft backdrop-blur-sm flex-wrap">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl grad-bg flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20">
+                    <span class="material-icons-round text-slate-900 text-[20px]">verified_user</span>
+                </div>
+                <span class="text-xl font-extrabold tracking-tight text-slate-900">Edu<span class="grad-text">Check</span></span>
+                <a href="index.html"
+   class="ml-2 text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-400/20 hover:bg-indigo-500/20 transition">
+    Ver 1
+</a>
+                <span
+    class="ml-2 text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-400/20">
+    Ver 2
+</span>
+
+
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+                <div class="hidden sm:flex items-center gap-1.5 border border-indigo-500/30 bg-indigo-500/5 rounded-lg px-3 py-1.5 text-xs font-medium text-indigo-300">
+                    <span class="material-icons-round text-[15px] text-indigo-400">star</span>
+                    Nhóm 10 điểm
+                </div>
+                <button id="toggleExtBtn" title="Mở EduCheck" class="w-9 h-9 rounded-lg border border-purple-200/60 bg-white/40 hover:bg-white/60 flex items-center justify-center text-slate-700 transition-colors">
+                    <span class="material-icons-round text-[18px]">shield</span>
+                </button>
+                <button id="darkToggleBtn" title="Giao diện tối" class="w-9 h-9 rounded-lg border border-purple-200/60 bg-white/40 hover:bg-white/60 flex items-center justify-center text-slate-700 transition-colors">
+                    <span class="material-icons-round text-[18px]">dark_mode</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ===== MAIN ===== -->
+        <div class="flex-1 flex overflow-hidden relative">
+
+            <!-- Cột marketing -->
+            <aside id="marketing-col" class="hidden lg:flex w-[360px] flex-shrink-0 flex-col justify-start pt-8 px-10 xl:px-12">
+                <h1 class="text-3xl xl:text-4xl font-extrabold leading-tight text-slate-900 mb-4">
+                    Hệ thống hỗ trợ <span class="grad-text">tư duy phản biện</span>
+                </h1>
+                <p class="text-slate-600 text-sm leading-relaxed mb-8">
+                    EduCheck không chỉ kiểm tra AI. Hệ thống hướng dẫn bạn phân tích luận điểm, đối chiếu bằng chứng học thuật và tự đánh giá trước khi đưa ra kết luận.
+                </p>
+
+                <div class="space-y-5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-lg feature-icon flex items-center justify-center flex-shrink-0">
+                            <span class="material-icons-round text-slate-900 text-[18px]">psychology</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-slate-900">Phân tích đa chiều</div>
+                            <div class="text-xs text-slate-600">6 tiêu chí đánh giá chất lượng luận điểm</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-lg feature-icon flex items-center justify-center flex-shrink-0">
+                            <span class="material-icons-round text-slate-900 text-[18px]">search</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-slate-900">Truy vấn học thuật thông minh</div>
+                            <div class="text-xs text-slate-600">Tạo truy vấn Scholar, PubMed, Semantic Scholar</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Cột nội dung / chat -->
+            <div class="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 min-w-0">
+
+                <div class="w-full max-w-2xl flex mb-4">
+                    <div class="w-8 h-8 rounded-full grad-bg flex items-center justify-center text-slate-900 font-bold mr-3 flex-shrink-0 text-sm">U</div>
+                    <div class="text-slate-700 pt-1.5 w-full text-sm leading-relaxed">
+                        Dán bất kỳ đoạn văn bản cần kiểm chứng. EduCheck sẽ hướng dẫn bạn phân tích từng luận điểm, đối chiếu bằng chứng và tự đưa ra phán đoán.
+                    </div>
+                </div>
+
+                <div class="w-full max-w-2xl mb-4 soft-card rounded-2xl p-4 border border-indigo-200/60">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-400/20 flex items-center justify-center flex-shrink-0">
+                            <span class="material-icons-round text-indigo-500 text-[20px]">school</span>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-900 text-sm">Hệ thống hỗ trợ tư duy phản biện</div>
+                            <p class="text-[13px] text-slate-600 mt-1">
+                                EduCheck sẽ <strong>phân tích cấu trúc</strong> văn bản, <strong>tách luận điểm</strong>, yêu cầu bạn <strong>tự đánh giá</strong> trước khi gọi AI, sau đó <strong>đối chiếu</strong> với bằng chứng học thuật và đưa ra <strong>khuyến nghị</strong> — biến bạn thành người kiểm soát thông tin, không phải người phụ thuộc.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INPUT AREA -->
+                <div class="w-full max-w-2xl soft-card rounded-2xl p-5 glow-card relative">
+                    <div class="w-9 h-9 rounded-lg feature-icon flex items-center justify-center mb-3">
+                        <span class="material-icons-round text-[18px]">smart_toy</span>
+                    </div>
+
+                    <div class="relative">
+                        <textarea id="ai-input" maxlength="10000" placeholder="Dán nội dung tại đây..."
+                            class="w-full h-[45vh] sm:h-[50vh] lg:h-[55vh] bg-transparent text-slate-800 placeholder-slate-500 resize-none outline-none leading-relaxed text-[15px]"></textarea>
+
+                        <div id="ai-output-parsed"
+                            class="hidden h-[45vh] sm:h-[50vh] lg:h-[55vh] overflow-y-auto text-slate-800 leading-relaxed text-[15px] space-y-2 outline-none whitespace-pre-wrap scroll-smooth"
+                            style="white-space: pre-wrap;" contenteditable="true" spellcheck="false" title="Nhấp vào để chỉnh sửa"></div>
+
+                        <!-- Pipeline status -->
+                        <div id="pipeline-status" class="hidden w-full mt-4">
+                            <div class="flex items-center gap-1.5 mb-3 text-[11px] font-medium text-slate-500">
+                                <span class="material-icons-round text-[16px] text-indigo-400">timeline</span>
+                                <span>Pipeline phân tích</span>
+                                <span class="ml-auto text-[10px] text-slate-400" id="pipeline-step-label">Đang khởi tạo...</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <div class="pipeline-step active flex items-center gap-1.5 px-2 py-1 rounded-lg border border-purple-200/60 bg-white/30 text-[10px] font-medium" data-step="0">
+                                    <span class="step-icon material-icons-round text-[14px]">fact_check</span>
+                                    Coach
+                                </div>
+                                <div class="pipeline-connector" data-connector="0"></div>
+                                <div class="pipeline-step flex items-center gap-1.5 px-2 py-1 rounded-lg border border-purple-200/60 bg-white/30 text-[10px] font-medium opacity-60" data-step="1">
+                                    <span class="step-icon material-icons-round text-[14px]">content_cut</span>
+                                    Tách luận
+                                </div>
+                                <div class="pipeline-connector" data-connector="1"></div>
+                                <div class="pipeline-step flex items-center gap-1.5 px-2 py-1 rounded-lg border border-purple-200/60 bg-white/30 text-[10px] font-medium opacity-60" data-step="2">
+                                    <span class="step-icon material-icons-round text-[14px]">tune</span>
+                                    Tối ưu
+                                </div>
+                                <div class="pipeline-connector" data-connector="2"></div>
+                                <div class="pipeline-step flex items-center gap-1.5 px-2 py-1 rounded-lg border border-purple-200/60 bg-white/30 text-[10px] font-medium opacity-60" data-step="3">
+                                    <span class="step-icon material-icons-round text-[14px]">psychology</span>
+                                    Phản biện
+                                </div>
+                                <div class="pipeline-connector" data-connector="3"></div>
+                                <div class="pipeline-step flex items-center gap-1.5 px-2 py-1 rounded-lg border border-purple-200/60 bg-white/30 text-[10px] font-medium opacity-60" data-step="4">
+                                    <span class="step-icon material-icons-round text-[14px]">analytics</span>
+                                    AI
+                                </div>
+                                <div class="pipeline-connector" data-connector="4"></div>
+                                <div class="pipeline-step flex items-center gap-1.5 px-2 py-1 rounded-lg border border-purple-200/60 bg-white/30 text-[10px] font-medium opacity-60" data-step="5">
+                                    <span class="step-icon material-icons-round text-[14px]">assessment</span>
+                                    Báo cáo
+                                </div>
+                            </div>
+                            <div id="pipeline-detail" class="mt-2 text-[12px] text-slate-600 bg-white/30 p-2 rounded-lg border border-purple-200/60 min-h-[40px]"></div>
+                        </div>
+
+                        <div id="stream-preview-wrapper" class="hidden w-full mt-4">
+                            <div class="flex items-center gap-2 mb-2 border-b border-purple-200/60 pb-2">
+                                <span class="material-icons-round text-indigo-400 text-sm animate-pulse">sync</span>
+                                <span class="text-xs font-semibold text-indigo-300" id="stream-status-label">Đang chờ AI xử lý...</span>
+                                <span class="text-[11px] text-slate-500 ml-auto" id="stream-token-count">0 tokens</span>
+                            </div>
+                            <div id="stream-preview" class="text-slate-600 text-[12px] font-mono bg-white/40 p-3 rounded-lg border border-white/5 max-h-40 overflow-y-auto"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-2">
+                        <span id="char-count" class="text-[11px] text-slate-500 flex items-center gap-1">0 / 10.000 ký tự</span>
+                    </div>
+                </div>
+
+                <button id="btn-scan" class="w-full max-w-2xl mt-5 grad-bg grad-bg-hover glow-btn text-white font-semibold text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+                    <span class="material-icons-round text-[18px]">search</span>
+                    Phân tích với EduCheck
+                </button>
+
+                <div class="w-full max-w-2xl mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
+                    <span class="material-icons-round text-[14px] text-emerald-500">shield</span>
+                    Bảo mật tuyệt đối. Nội dung chỉ được xử lý trên thiết bị của bạn và Gemini API.
+                </div>
+            </div>
+
+            <!-- ===== EXTENSION PANEL ===== -->
+            <div id="extension-panel"
+                class="flex-col fixed inset-0 z-40 sm:static sm:inset-auto sm:z-auto sm:w-[420px] sm:flex-shrink-0 sm:my-4 sm:mr-4 sm:rounded-2xl soft-card sm:border sm:border-purple-200/60 glow-card overflow-hidden slide-in-right">
+
+                <div class="soft-card border-b border-purple-200/60 px-4 py-3.5 flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center gap-2 text-slate-900">
+                        <span class="material-icons-round text-indigo-400 text-lg">verified_user</span>
+                        <h2 class="font-bold text-[15px]">EduCheck</h2>
+                    </div>
+                    <button id="closeExt" class="text-slate-600 hover:text-slate-900 hover:bg-white/60 p-1.5 rounded-lg transition-colors">
+                        <span class="material-icons-round text-[18px] block">close</span>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto flex flex-col">
+
+                    <!-- STATE: INTRO -->
+                    <div id="state-intro" class="p-5 flex flex-col gap-4">
+                        <div class="soft-card p-4 border border-purple-200/60 rounded-xl">
+                            <h4 class="font-semibold text-slate-900 mb-2 flex items-center text-sm">
+                                <span class="material-icons-round text-[16px] mr-2 text-indigo-400">vpn_key</span> Cấu hình API
+                            </h4>
+                            <p class="text-slate-600 text-[12px] mb-3">Vui lòng cung cấp Gemini API Key để bắt đầu phân tích.</p>
+                            <input type="password" id="gemini-key" class="w-full text-[13px] p-2.5 border border-purple-200/60 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-white/40 text-slate-900 transition-all rounded-lg" placeholder="Nhập API Key tại đây..." />
+                            <div class="flex justify-between items-center mt-2">
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-indigo-400 hover:underline">Lấy Key miễn phí</a>
+                                <span class="text-[11px] text-slate-500">Model: gemini-2.5-flash</span>
+                            </div>
+                            <div id="api-error-detail" class="hidden text-[12px] text-red-400 mt-2 bg-red-500/10 p-2 border border-red-500/30 rounded-lg"></div>
+                        </div>
+                        <p class="text-center text-[12px] text-slate-500 mt-2">Dán văn bản và nhấn "Phân tích với EduCheck" để bắt đầu pipeline phản biện.</p>
+                    </div>
+
+                    <!-- STATE: SCANNING -->
+                    <div id="state-scanning" class="hidden flex-col h-full p-5">
+                        <div class="flex items-center justify-between mb-3 border-b border-purple-200/60 pb-2">
+                            <h3 class="font-semibold text-slate-900 flex items-center gap-2 text-sm">
+                                <span class="loader"></span>
+                                Đang phân tích...
+                            </h3>
+                            <button id="btn-abort" class="text-[12px] text-red-400 hover:underline flex items-center">
+                                Hủy bỏ
+                            </button>
+                        </div>
+                        <div class="bg-white/40 border border-purple-200/60 p-3 flex-1 flex flex-col overflow-hidden rounded-xl">
+                            <div class="flex flex-col items-center justify-center h-full gap-3">
+                                <span class="material-icons-round text-indigo-400 text-3xl animate-pulse">cloud_sync</span>
+                                <div id="stream-preview2" class="text-slate-600 text-[13px] font-mono text-center">Đang chạy pipeline phân tích...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STATE: RESULTS -->
+                    <div id="state-results" class="hidden flex-col h-full p-5">
+                        <div class="flex items-center justify-between mb-4 border-b border-purple-200/60 pb-2">
+                            <h3 class="font-semibold text-slate-900 text-sm">Kết quả phân tích</h3>
+                            <button id="btn-reset" class="text-[12px] text-indigo-400 hover:underline flex items-center rounded px-1 transition-all">
+                                <span class="material-icons-round text-[14px] mr-1">refresh</span>Phân tích lại
+                            </button>
+                        </div>
+
+                        <!-- Summary metrics -->
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div class="soft-card border border-purple-200/60 rounded-xl py-3 text-center">
+                                <div id="count-low" class="text-xl font-bold text-emerald-400">0</div>
+                                <div class="text-[10px] text-slate-500 font-semibold tracking-wide">RỦI RO THẤP</div>
+                            </div>
+                            <div class="soft-card border border-purple-200/60 rounded-xl py-3 text-center">
+                                <div id="count-medium" class="text-xl font-bold text-amber-400">0</div>
+                                <div class="text-[10px] text-slate-500 font-semibold tracking-wide">CẦN KIỂM CHỨNG</div>
+                            </div>
+                            <div class="soft-card border border-purple-200/60 rounded-xl py-3 text-center">
+                                <div id="count-high" class="text-xl font-bold text-red-400">0</div>
+                                <div class="text-[10px] text-slate-500 font-semibold tracking-wide">RỦI RO CAO</div>
+                            </div>
+                        </div>
+
+                        <!-- Overall confidence -->
+                        <div class="soft-card border border-purple-200/60 rounded-xl p-3 mb-4 flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-sm text-slate-700">
+                                <span class="material-icons-round text-indigo-400 text-[18px]">signal_cellular_alt</span>
+                                <span>Độ tin cậy tổng thể</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="overall-confidence-bar" class="h-full grad-bg rounded-full" style="width:0%"></div>
+                                </div>
+                                <span id="overall-confidence-text" class="text-sm font-bold text-slate-900">0%</span>
+                            </div>
+                        </div>
+
+                        <div id="cards-container" class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1 pb-4"></div>
+
+                        <div class="pt-4 border-t border-purple-200/60 flex gap-2">
+                            <button id="btn-report" class="flex-1 bg-white/40 hover:bg-white/60 border border-purple-200/60 text-slate-900 font-medium text-sm py-2.5 px-4 flex items-center justify-center gap-2 rounded-xl transition-colors">
+                                <span class="material-icons-round text-[18px]">assessment</span> Xuất Báo Cáo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== REPORT MODAL ===== -->
+            <div id="report-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 sm:p-6 fade-in">
+                <div class="soft-card w-full max-w-4xl border border-purple-200/60 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+                    <div class="px-4 py-3 flex justify-between items-center border-b border-purple-200/60 flex-shrink-0">
+                        <div class="flex items-center gap-2 text-slate-900">
+                            <span class="material-icons-round text-indigo-400 text-[18px]">picture_as_pdf</span>
+                            <span class="text-[13px] font-medium">Báo cáo phân tích & Reflection</span>
+                        </div>
+                        <button id="close-modal" class="hover:bg-red-500/20 hover:text-red-400 p-1.5 text-slate-600 rounded-lg transition-colors">
+                            <span class="material-icons-round text-[18px] block">close</span>
+                        </button>
+                    </div>
+
+                    <div class="px-4 py-2.5 border-b border-purple-200/60 flex gap-2 flex-shrink-0">
+                        <button id="btn-download-pdf" class="grad-bg grad-bg-hover px-3 py-1.5 text-[12px] text-slate-900 flex items-center gap-1.5 rounded-lg font-medium transition-all">
+                            <span class="material-icons-round text-[14px]">save_alt</span> Lưu PDF
+                        </button>
+                    </div>
+
+                    <div class="p-4 sm:p-6 overflow-y-auto bg-[#05070f] flex-1">
+                        <div id="pdf-content" class="bg-white text-black p-6 sm:p-10 mx-auto text-left whitespace-pre-wrap rounded-lg" style="width:100%; max-width: 800px; font-family: 'Inter', Consolas, monospace; font-size: 13px; line-height: 1.6;">
+                            <div class="text-center mb-6">
+                                <div class="font-bold text-[18px]">BÁO CÁO PHÂN TÍCH PHẢN BIỆN</div>
+                                <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
+                                <div class="text-[14px]">EduCheck — Critical Thinking Support System</div>
+                            </div>
+
+                            <div class="mb-2">
+                                Ngày tạo: <span id="pdf-date"></span><br>
+                                Số luận điểm: <span id="pdf-claim-count">0</span>
+                            </div>
+
+                            <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
+                            <div class="font-bold mb-2">  📊 TÓM TẮT KẾT QUẢ</div>
+                            <div class="mb-2 pl-2">
+                                <div>  🟢 RỦI RO THẤP:   <span id="pdf-summary-low" class="font-bold">0</span> luận điểm</div>
+                                <div>  🟡 CẦN KIỂM CHỨNG: <span id="pdf-summary-medium" class="font-bold">0</span> luận điểm</div>
+                                <div>  🔴 RỦI RO CAO:   <span id="pdf-summary-high" class="font-bold">0</span> luận điểm</div>
+                                <br>
+                                <div>  Độ tin cậy tổng thể: <span id="pdf-trust-bar"></span></div>
+                            </div>
+
+                            <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
+                            <div class="font-bold mb-4">  📄 PHÂN TÍCH CHI TIẾT</div>
+                            <div id="report-table-body" class="space-y-4 mb-4"></div>
+                            <div class="mb-2">─────────────────────────────────────────────────────────────────────────────────────────────────────</div>
+                            <div class="text-[11px] text-slate-500 text-center">Báo cáo được tạo bởi EduCheck — Hệ thống hỗ trợ tư duy phản biện</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CHALLENGE MODE (Reflection Layer) ===== -->
+            <div id="challenge-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in">
+                <div class="soft-card w-full max-w-2xl border border-purple-200/60 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+                    <div class="px-5 py-4 border-b border-purple-200/60 flex items-center gap-3 sticky top-0 bg-white/80 backdrop-blur-sm z-10">
+                        <div class="w-11 h-11 rounded-full bg-purple-500/10 border border-purple-400/20 flex items-center justify-center">
+                            <span class="material-icons-round text-purple-500 text-[22px]">psychology</span>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-900">Challenge Mode — Tư duy phản biện</div>
+                            <div class="text-[12px] text-slate-500">Trước khi xem phân tích của AI, hãy tự đánh giá luận điểm.</div>
+                        </div>
+                    </div>
+
+                    <div class="p-5 space-y-5 flex-1 overflow-y-auto">
+                        <!-- Nơi hiển thị danh sách luận điểm -->
+                        <div id="challenge-claims-preview" class="p-4 rounded-xl bg-white/50 border border-purple-200/60 text-sm text-slate-700"></div>
+
+                        <!-- Nơi hiển thị các block chấm điểm 0-10 -->
+                        <div id="dynamic-scoring-container" class="space-y-4"></div>
+
+                        <div class="text-[13px] text-slate-600 bg-indigo-500/5 border border-indigo-400/20 rounded-xl p-3">
+                            <span class="font-semibold text-slate-900">🎯 Mục tiêu giáo dục:</span>
+                            Chuyển hành vi <span class="font-semibold">"đọc và tin"</span> thành
+                            <span class="font-semibold">"đọc → đối chiếu → phản biện → rồi mới tin"</span>.
+                            Đánh giá của bạn sẽ được lưu vào Reflection Log và so sánh với phân tích của AI.
+                        </div>
+                    </div>
+
+                    <div class="px-5 py-4 border-t border-purple-200/60 flex justify-between items-center sticky bottom-0 bg-white/80 backdrop-blur-sm z-10">
+                        <button id="btn-skip-challenge" class="text-sm text-slate-500 hover:text-slate-800 transition-colors">Bỏ qua</button>
+                        <button id="btn-confirm-challenge" class="px-5 py-2.5 rounded-xl grad-bg text-white font-semibold transition-all">Xem phân tích & kết luận</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== EDIT WARNING BANNER ===== -->
+            <div id="edit-warning-label" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/95 text-white text-[12.5px] font-medium shadow-lg backdrop-blur-sm">
+                <span class="material-icons-round text-[18px]">info</span>
+                Nội dung yêu cầu để kiểm chứng đã bị chỉnh sửa
+            </div>
+
+            <!-- ===== ALERT MODAL ===== -->
+            <div id="alert-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center fade-in p-4">
+                <div class="soft-card w-full max-w-sm border border-purple-200/60 rounded-2xl shadow-2xl flex flex-col font-sans">
+                    <div class="flex justify-between items-center px-4 py-3 border-b border-purple-200/60">
+                        <div class="text-[13px] font-medium text-slate-900" id="alert-window-title">EduCheck</div>
+                        <button id="btn-close-alert-x" class="hover:bg-red-500/20 hover:text-red-400 p-1 text-slate-600 rounded-lg transition-colors">
+                            <span class="material-icons-round text-[16px] block">close</span>
+                        </button>
+                    </div>
+                    <div class="flex items-start gap-4 p-5">
+                        <span id="alert-icon" class="material-icons-round text-3xl text-indigo-400">info</span>
+                        <div>
+                            <h3 id="alert-title" class="text-slate-900 text-[15px] mb-1 font-semibold">Thông báo</h3>
+                            <p id="alert-message" class="text-[13px] text-slate-600 leading-relaxed whitespace-pre-wrap">Message</p>
+                        </div>
+                    </div>
+                    <div class="px-4 py-3 flex justify-end border-t border-purple-200/60">
+                        <button id="btn-close-alert" class="grad-bg grad-bg-hover px-6 py-1.5 text-[13px] text-slate-900 font-medium rounded-lg transition-all">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ===== DOM REFS =====
+        const toggleExtBtn = document.getElementById('toggleExtBtn');
+        const extensionPanel = document.getElementById('extension-panel');
+        const marketingCol = document.getElementById('marketing-col');
+        const closeExtBtn = document.getElementById('closeExt');
+        const stateIntro = document.getElementById('state-intro');
+        const stateScanning = document.getElementById('state-scanning');
+        const stateResults = document.getElementById('state-results');
+        const aiInput = document.getElementById('ai-input');
+        const aiOutputParsed = document.getElementById('ai-output-parsed');
+        const cardsContainer = document.getElementById('cards-container');
+        const reportTableBody = document.getElementById('report-table-body');
+        const btnScan = document.getElementById('btn-scan');
+        const btnReset = document.getElementById('btn-reset');
+        const editWarningLabel = document.getElementById('edit-warning-label');
+        const btnReport = document.getElementById('btn-report');
+        const btnAbort = document.getElementById('btn-abort');
+        const reportModal = document.getElementById('report-modal');
+        const alertModal = document.getElementById('alert-modal');
+        const btnDownloadPdf = document.getElementById('btn-download-pdf');
+        const streamPreview = document.getElementById('stream-preview');
+        const streamPreview2 = document.getElementById('stream-preview2');
+        const streamStatusLabel = document.getElementById('stream-status-label');
+        const streamTokenCount = document.getElementById('stream-token-count');
+        const apiKeyInput = document.getElementById('gemini-key');
+        const errorDetail = document.getElementById('api-error-detail');
+        const charCount = document.getElementById('char-count');
+        const pipelineStatus = document.getElementById('pipeline-status');
+        const pipelineDetail = document.getElementById('pipeline-detail');
+        const pipelineStepLabel = document.getElementById('pipeline-step-label');
+        const challengeModal = document.getElementById('challenge-modal');
+        const btnConfirmChallenge = document.getElementById('btn-confirm-challenge');
+        const btnSkipChallenge = document.getElementById('btn-skip-challenge');
+        const reflectionModal = document.getElementById('reflection-modal');
+        const reflectionLogContent = document.getElementById('reflection-log-content');
+        const btnReflectionLog = document.getElementById('btn-reflection-log');
+        const closeReflection = document.getElementById('close-reflection');
+
+        // ===== STATE =====
+        const MODEL_NAME = 'gemini-3.5-flash-lite'; 
+        const MAX_CHARS = 10000;
+        let isScanning = false;
+        let hasBeenAnalyzed = false;
+        let referenceText = '';
+        let hasWarnedEdit = false;
+        let focusedId = null;
+        let currentResults = [];
+        let reflectionData = null;
+        let userScores = []; 
+
+        // ===== UI HELPERS =====
+        function setPanelOpen(isOpen) {
+            extensionPanel.style.display = isOpen ? 'flex' : 'none';
+            if (marketingCol) marketingCol.style.display = isOpen ? 'none' : '';
+        }
+
+        function hideWarning() {
+            editWarningLabel.classList.add('hidden');
+            editWarningLabel.classList.remove('flex', 'warning-glow');
+            toggleExtBtn.classList.remove('hint-glow');
+            btnReset.classList.remove('hint-glow');
+            hasWarnedEdit = false;
+        }
+
+        function showWarning() {
+            if (!hasWarnedEdit) {
+                editWarningLabel.classList.remove('hidden');
+                editWarningLabel.classList.add('flex', 'warning-glow');
+                toggleExtBtn.classList.add('hint-glow');
+                btnReset.classList.add('hint-glow');
+                hasWarnedEdit = true;
+            }
+        }
+
+        function showAlert(title, message, isError = false) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            const iconEl = document.getElementById('alert-icon');
+            if (isError) {
+                iconEl.innerText = 'error';
+                iconEl.className = 'material-icons-round text-3xl text-red-400';
+            } else {
+                iconEl.innerText = 'info';
+                iconEl.className = 'material-icons-round text-3xl text-indigo-400';
+            }
+            alertModal.classList.remove('hidden');
+            alertModal.classList.add('flex');
+        }
+
+        function closeAlert() {
+            alertModal.classList.add('hidden');
+            alertModal.classList.remove('flex');
+        }
+        document.getElementById('btn-close-alert').addEventListener('click', closeAlert);
+        document.getElementById('btn-close-alert-x').addEventListener('click', closeAlert);
+
+        function updateCharCount() {
+            const len = aiInput.classList.contains('hidden') ? aiOutputParsed.innerText.length : aiInput.value.length;
+            charCount.innerText = `${len.toLocaleString('vi-VN')} / ${MAX_CHARS.toLocaleString('vi-VN')} ký tự`;
+        }
+
+        function handleTextChange() {
+            const currentText = aiInput.classList.contains('hidden') ? aiOutputParsed.innerText : aiInput.value;
+            if (hasBeenAnalyzed && currentText !== referenceText) showWarning();
+            else hideWarning();
+            updateCharCount();
+        }
+        aiInput.addEventListener('input', handleTextChange);
+        aiOutputParsed.addEventListener('input', handleTextChange);
+
+        function showApiError(message) {
+            errorDetail.classList.remove('hidden');
+            errorDetail.innerText = message;
+        }
+        function hideApiError() { errorDetail.classList.add('hidden'); }
+
+        function resetUI() {
+            stateScanning.classList.add('hidden');
+            stateScanning.classList.remove('flex');
+            stateIntro.classList.remove('hidden');
+            btnScan.disabled = false;
+            isScanning = false;
+            document.getElementById('stream-preview-wrapper').classList.add('hidden');
+            pipelineStatus.classList.add('hidden');
+        }
+
+        function updatePipelineStep(stepIndex, label, detail) {
+            const steps = document.querySelectorAll('.pipeline-step');
+            const connectors = document.querySelectorAll('.pipeline-connector');
+            steps.forEach((el, i) => {
+                el.classList.remove('active', 'done');
+                if (i < stepIndex) el.classList.add('done');
+                else if (i === stepIndex) el.classList.add('active');
+            });
+            connectors.forEach((el, i) => {
+                el.classList.toggle('done', i < stepIndex);
+            });
+            pipelineStepLabel.textContent = label;
+            pipelineDetail.textContent = detail || '';
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        // ===== TEXT ANALYSIS (local) =====
+
+        function analyzeTextStructure(text) {
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+            const numbers = (text.match(/\b\d+(?:[,.]\d+)?\b/g) || []).length;
+            const dates = (text.match(/\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b(?:tháng|năm|ngày)\s+\d+\b/gi) || []).length;
+            const orgs = (text.match(/\b(?:WHO|UN|OECD|IMF|World Bank|EU|WTO|UNESCO|Google|Microsoft|Apple|Meta|Amazon|Harvard|Oxford|Cambridge|Stanford|MIT|Đại học|Trường ĐH|Bộ|Viện|Trung tâm|Công ty|Tập đoàn)\b/gi) || []).length;
+            const verifiable = sentences.filter(s => /\b(?:số|tỉ lệ|phần trăm|nghiên cứu|khảo sát|thống kê|báo cáo|dữ liệu|chứng minh|kết luận)\b/i.test(s)).length;
+            return { sentences: sentences.length, numbers, dates, orgs, verifiable };
+        }
+
+        function extractClaims(text) {
+            const raw = text.split(/[.!?;:]+/).filter(s => s.trim().length > 15);
+            const claims = raw.map(s => s.trim()).filter(s => s.length > 0);
+            return claims.length ? claims : [text];
+        }
+
+        function detectDomain(text) {
+            const keywords = {
+                health: ['bệnh', 'sức khỏe', 'y tế', 'thuốc', 'điều trị', 'phẫu thuật', 'dịch', 'virus', 'vắc xin', 'bác sĩ', 'bệnh viện', 'WHO', 'PubMed', 'Nature', 'The Lancet'],
+                economics: ['kinh tế', 'GDP', 'lạm phát', 'thị trường', 'đầu tư', 'tài chính', 'ngân hàng', 'thương mại', 'OECD', 'IMF', 'World Bank', 'tăng trưởng'],
+                tech: ['AI', 'trí tuệ nhân tạo', 'machine learning', 'dữ liệu', 'phần mềm', 'máy tính', 'internet', 'blockchain', 'công nghệ', 'đổi mới', 'Google', 'Microsoft'],
+                education: ['giáo dục', 'học tập', 'sinh viên', 'giảng viên', 'trường học', 'đào tạo', 'nghiên cứu', 'bài giảng', 'học thuật', 'kỹ năng', 'phương pháp']
+            };
+            let scores = {};
+            for (const [domain, words] of Object.entries(keywords)) {
+                scores[domain] = words.filter(w => text.toLowerCase().includes(w.toLowerCase())).length;
+            }
+            const best = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+            return best.length > 0 && best[0][1] > 0 ? best[0][0] : 'general';
+        }
+
+        function buildScholarQuery(claim, domain) {
+            let query = claim.trim();
+
+            if (domain === 'health')
+                query += ' clinical trial systematic review';
+
+            else if (domain === 'economics')
+                query += ' economic analysis empirical study';
+
+            else if (domain === 'tech')
+                query += ' research';
+
+            else if (domain === 'education')
+                query += ' education research';
+
+            return query;
+        }
+
+        function detectHallucinationPatterns(text) {
+            const patterns = [];
+            if (/\b(?:nghiên cứu|theo nghiên cứu|các nhà khoa học)\s+đã\s+(?:chứng minh|khẳng định|kết luận)\b/i.test(text) && !/\b(?:theo|năm|tại)\s+\d{4}\b/.test(text)) {
+                patterns.push('Khẳng định khoa học không ghi năm');
+            }
+            if (/\b(?:số|khoảng|hơn)\s+\d+\s*(?:%|triệu|nghìn|tỉ)\b/i.test(text) && !/\b(?:nguồn|theo|từ|dữ liệu)\b/i.test(text)) {
+                patterns.push('Số liệu không nêu nguồn');
+            }
+            if (/\b(?:luôn|tất cả|mọi|không bao giờ|chắc chắn|hoàn toàn)\b/i.test(text) && !/\b(?:có thể|có lẽ|thường|nhiều khả năng)\b/i.test(text)) {
+                patterns.push('Sử dụng từ ngữ tuyệt đối');
+            }
+            if (/\b(?:tác giả|tác giả này|nhà nghiên cứu|công bố)\b/i.test(text) && !/\b(?:năm|tập san|tạp chí|DOI)\b/i.test(text)) {
+                patterns.push('Trích dẫn mơ hồ, thiếu thông tin');
+            }
+            return patterns;
+        }
+
+        function detectFallacies(text) {
+            const fallacies = [];
+            if (/\b(?:ai cũng|mọi người đều|tất cả mọi người)\b/i.test(text)) {
+                fallacies.push('Hasty Generalization — Tổng quát hóa vội vàng');
+            }
+            if (/\b(?:vì vậy|do đó|suy ra|kết luận)\b/i.test(text) && !/\b(?:nếu|giả sử|khi|trong trường hợp)\b/i.test(text)) {
+                fallacies.push('False Cause — Ngụy biện nguyên nhân');
+            }
+            if (/\b(?:theo|chuyên gia|nhà khoa học|giáo sư)\b/i.test(text) && !/\b(?:nghiên cứu|bằng chứng|dữ liệu)\b/i.test(text)) {
+                fallacies.push('Appeal to Authority — Dựa vào uy tín không có bằng chứng');
+            }
+            if (/(?:nhưng|tuy nhiên|mặc dù)\s*.{0,20}?(?:không|chưa|chẳng|chả)/i.test(text)) {
+                fallacies.push('Cherry Picking — Chọn lọc thông tin có lợi');
+            }
+            return fallacies;
+        }
+
+        // ===== GEMINI API CALLS =====
+
+        async function callGemini(apiKey, prompt, label) {
+            try {
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            generationConfig: {
+                                temperature: 0.2,
+                                maxOutputTokens: 2000
+                            },
+                            contents: [
+                                {
+                                    parts: [
+                                        {
+                                            text: prompt
+                                        }
+                                    ]
+                                }
+                            ]
+                        })
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(JSON.stringify(data));
+                }
+
+                return data.candidates?.[0]?.content?.parts
+                    ?.map(part => part.text)
+                    .join("") || "";
+
+            } catch (err) {
+                console.error(`${label} error:`, err);
+                throw new Error(`${label} failed: ${err.message}`);
+            }
+        }
+
+        // ===== MAIN PIPELINE =====
+
+        async function runPipeline(text, apiKey, onComplete, onError) {
+            try {
+                updatePipelineStep(0, 'Prompt Coach', 'Phân tích cấu trúc văn bản...');
+                const structure = analyzeTextStructure(text);
+                const domain = detectDomain(text);
+                const coachReport = `📊 Phân tích cấu trúc:
+• ${structure.sentences} luận điểm tiềm năng
+• ${structure.numbers} số liệu
+• ${structure.dates} mốc thời gian
+• ${structure.orgs} tổ chức được nhắc đến
+• ${structure.verifiable} phát biểu có thể kiểm chứng
+• Lĩnh vực: ${domain}`;
+                pipelineDetail.textContent = coachReport;
+                await sleep(400);
+
+                updatePipelineStep(1, 'Tách luận điểm', 'Chia văn bản thành các luận điểm độc lập...');
+                let claims = extractClaims(text);
+                if (claims.length === 0) claims = [text];
+                pipelineDetail.textContent = `✅ Đã tách ${claims.length} luận điểm.`;
+                await sleep(400);
+
+                updatePipelineStep(2, 'Tối ưu prompt', `Lĩnh vực: ${domain} — Tối ưu hóa truy vấn...`);
+                pipelineDetail.textContent = `✅ Prompt đã tối ưu cho lĩnh vực ${domain}.`;
+                await sleep(400);
+
+                updatePipelineStep(4, 'AI Analysis', 'Đang gọi Gemini phân tích đa vai trò...');
+
+                const combinedPrompt = buildCombinedPrompt(claims, domain);
+                const combinedRaw = await callGemini(apiKey, combinedPrompt, 'Combined Analysis');
+                const combinedData = parseCombinedResponse(combinedRaw, claims);
+
+                const evidenceData = combinedData.map(d => d.evidence);
+                const counterData = combinedData.map(d => d.counter);
+                const riskData = combinedData.map(d => d.risk);
+                const coachData = combinedData.map(d => d.coach);
+
+                const results = claims.map((claim, idx) => {
+                    const ev = evidenceData[idx] || { quality: 'medium', reasons: [] };
+                    const ca = counterData[idx] || { arguments: ['Chưa có dữ liệu phản biện.'] };
+                    const rs = riskData[idx] || { level: 'medium', score: 50 };
+                    const ch = coachData[idx] || { recommendation: 'Xem xét cẩn thận các luận điểm này.' };
+
+                    const patterns = detectHallucinationPatterns(claim);
+                    const fallacies = detectFallacies(claim);
+
+                    const status = rs.level;
+                    return {
+                        segment: claim,
+                        status: status,
+                        evidenceQuality: ev.quality,
+                        evidenceReasons: ev.reasons || [],
+                        counterArguments: ca.arguments || [],
+                        riskScore: rs.score || 50,
+                        riskLevel: rs.level || 'medium',
+                        recommendation: ch.recommendation || 'Cần kiểm chứng thêm.',
+                        hallucinationPatterns: patterns,
+                        fallacies: fallacies,
+                        scholarQuery: buildScholarQuery(claim, domain),
+                        domain: domain
+                    };
+                });
+
+                updatePipelineStep(5, 'Báo cáo', 'Đã hoàn tất phân tích.');
+                await sleep(300);
+
+                onComplete(results, claims, domain);
+            } catch (err) {
+                console.error('Pipeline error:', err);
+                onError(err.message || 'Lỗi không xác định trong pipeline.');
+            }
+        }
+
+        // ===== PROMPT BUILDERS =====
+
+        function buildCombinedPrompt(claims, domain) {
+            return `Bạn là một hội đồng gồm 4 chuyên gia: (1) chuyên gia đánh giá bằng chứng học thuật, (2) nhà phản biện, (3) chuyên gia đánh giá rủi ro thông tin, (4) nhà giáo dục. Hãy phân tích từng luận điểm sau theo cả 4 vai trò. Lĩnh vực: ${domain}.
+
+${claims.map((c, i) => `${i+1}. ${c}`).join('\n')}
+
+Trả về DUY NHẤT một JSON array (không thêm chữ nào khác), mỗi phần tử tương ứng với 1 luận điểm theo đúng thứ tự, có cấu trúc:
+{
+  "evidence_quality": "high|medium|low",
+  "reasons": ["lý do 1", "lý do 2"],
+  "counter_arguments": ["phản biện 1", "phản biện 2"],
+  "risk_score": 0-100,
+  "risk_level": "low|medium|high",
+  "recommendation": "khuyến nghị ngắn gọn"
+}`;
+        }
+
+        function parseCombinedResponse(raw, claims) {
+            try {
+                const cleaned = cleanJson(raw);
+                const data = JSON.parse(cleaned);
+                if (Array.isArray(data)) {
+                    return claims.map((_, i) => {
+                        const d = data[i] || {};
+                        return {
+                            evidence: { quality: d.evidence_quality || 'medium', reasons: d.reasons || [] },
+                            counter: { arguments: d.counter_arguments || [] },
+                            risk: { score: d.risk_score || 50, level: d.risk_level || 'medium' },
+                            coach: { recommendation: d.recommendation || 'Xem xét cẩn thận các luận điểm này.' }
+                        };
+                    });
+                }
+            } catch (e) { }
+            return claims.map(() => ({
+                evidence: { quality: 'medium', reasons: ['Không thể trích xuất đánh giá từ phản hồi.'] },
+                counter: { arguments: ['Chưa có phản biện cụ thể.'] },
+                risk: { score: 50, level: 'medium' },
+                coach: { recommendation: 'Xem xét cẩn thận các luận điểm này.' }
+            }));
+        }
+
+        function buildEvidencePrompt(claims, domain) {
+            return `Với tư cách chuyên gia đánh giá bằng chứng học thuật, hãy phân tích chất lượng bằng chứng cho từng luận điểm sau. Lĩnh vực: ${domain}.
+
+${claims.map((c, i) => `${i+1}. ${c}`).join('\n')}
+
+Trả về JSON array với mỗi object: { "evidence_quality": "high|medium|low", "reasons": ["lý do 1", "lý do 2"] }`;
+        }
+
+        function buildCounterPrompt(claims, domain) {
+            return `Với tư cách nhà phản biện, hãy đưa ra các lập luận trái chiều cho từng luận điểm sau. Lĩnh vực: ${domain}.
+
+${claims.map((c, i) => `${i+1}. ${c}`).join('\n')}
+
+Trả về JSON array với mỗi object: { "counter_arguments": ["phản biện 1", "phản biện 2"] }`;
+        }
+
+        function buildRiskPrompt(claims, domain) {
+            return `Với tư cách chuyên gia đánh giá rủi ro thông tin, hãy đánh giá mức độ rủi ro của từng luận điểm sau trên thang 0-100. Lĩnh vực: ${domain}.
+
+${claims.map((c, i) => `${i+1}. ${c}`).join('\n')}
+
+Trả về JSON array với mỗi object: { "risk_score": 0-100, "risk_level": "low|medium|high" }`;
+        }
+
+        function buildCoachPrompt(claims, domain) {
+            return `Với tư cách nhà giáo dục, hãy đưa ra khuyến nghị học thuật cho từng luận điểm sau. Lĩnh vực: ${domain}.
+
+${claims.map((c, i) => `${i+1}. ${c}`).join('\n')}
+
+Trả về JSON array với mỗi object: { "recommendation": "khuyến nghị ngắn gọn" }`;
+        }
+
+        // ===== PARSE RESPONSES =====
+
+        function parseEvidenceResponse(raw, claims) {
+            try {
+                const cleaned = cleanJson(raw);
+                const data = JSON.parse(cleaned);
+                if (Array.isArray(data)) return data.map(d => ({ quality: d.evidence_quality || 'medium', reasons: d.reasons || [] }));
+            } catch (e) { }
+            return claims.map(() => ({ quality: 'medium', reasons: ['Không thể trích xuất đánh giá từ phản hồi.'] }));
+        }
+
+        function parseCounterResponse(raw, claims) {
+            try {
+                const cleaned = cleanJson(raw);
+                const data = JSON.parse(cleaned);
+                if (Array.isArray(data)) return data.map(d => ({ arguments: d.counter_arguments || [] }));
+            } catch (e) { }
+            return claims.map(() => ({ arguments: ['Chưa có phản biện cụ thể.'] }));
+        }
+
+        function parseRiskResponse(raw, claims) {
+            try {
+                const cleaned = cleanJson(raw);
+                const data = JSON.parse(cleaned);
+                if (Array.isArray(data)) return data.map(d => ({ score: d.risk_score || 50, level: d.risk_level || 'medium' }));
+            } catch (e) { }
+            return claims.map(() => ({ score: 50, level: 'medium' }));
+        }
+
+        function parseCoachResponse(raw, claims) {
+            try {
+                const cleaned = cleanJson(raw);
+                const data = JSON.parse(cleaned);
+                if (Array.isArray(data)) return data.map(d => ({ recommendation: d.recommendation || 'Xem xét cẩn thận.' }));
+            } catch (e) { }
+            return claims.map(() => ({ recommendation: 'Xem xét cẩn thận các luận điểm này.' }));
+        }
+
+        function cleanJson(raw) {
+            let cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+            const match = cleaned.match(/\[[\s\S]*\]/);
+            if (match) cleaned = match[0];
+            return cleaned;
+        }
+
+        // ===== RENDER RESULTS =====
+
+        let renderResults = function(dataArray, domain) {
+            currentResults = dataArray;
+            focusedId = null;
+            let parsedHTML = '';
+            let cardsHTML = '';
+            let tableHTML = '';
+            let counts = { low: 0, medium: 0, high: 0 };
+            let totalRisk = 0;
+
+            const originalInputText = aiInput.value;
+            let currentTextIndex = 0;
+
+            dataArray.forEach((item, index) => {
+                const id = `chunk-${index}`;
+                const status = item.status || 'medium';
+                counts[status] = (counts[status] || 0) + 1;
+                const riskScore = item.riskScore || 50;
+                totalRisk += riskScore;
+
+                const pos = originalInputText.indexOf(item.segment, currentTextIndex);
+                if (pos !== -1) {
+                    const prefix = originalInputText.substring(currentTextIndex, pos);
+                    parsedHTML += prefix.replace(/\n/g, '<br>');
+                    currentTextIndex = pos + item.segment.length;
+                }
+
+                const cls = status === 'low' ? 'highlight-low' : status === 'high' ? 'highlight-high' : 'highlight-medium';
+                parsedHTML += `<span id="${id}" data-card-id="${id}" class="raw-text clickable-segment ${cls}">${item.segment}</span>`;
+
+                let icon, title, colorStr, bgStr, borderStr, statusLabel;
+                if (status === 'low') {
+                    icon = 'check_circle'; title = 'Rủi ro thấp'; colorStr = '#22c55e'; bgStr = 'bg-emerald-500/10'; borderStr = 'border-emerald-500/30 border-l-4 border-l-emerald-500';
+                    statusLabel = 'RỦI RO THẤP';
+                } else if (status === 'high') {
+                    icon = 'error'; title = 'Rủi ro cao'; colorStr = '#ef4444'; bgStr = 'bg-red-500/10'; borderStr = 'border-red-500/30 border-l-4 border-l-red-500';
+                    statusLabel = 'RỦI RO CAO';
+                } else {
+                    icon = 'warning'; title = 'Cần kiểm chứng'; colorStr = '#f59e0b'; bgStr = 'bg-amber-500/10'; borderStr = 'border-amber-500/30 border-l-4 border-l-amber-500';
+                    statusLabel = 'CẦN KIỂM CHỨNG';
+                }
+
+                const scholarQuery = encodeURIComponent(item.scholarQuery || item.segment);
+                const evidenceReasons = item.evidenceReasons || [];
+                const counterArgs = item.counterArguments || [];
+                const patterns = item.hallucinationPatterns || [];
+                const fallacies = item.fallacies || [];
+                const rec = item.recommendation || 'Xem xét cẩn thận.';
+
+                cardsHTML += `<div data-card-id="${id}" data-result-card="${id}" class="result-card p-3 ${bgStr} ${borderStr} rounded-xl flex flex-col gap-2 cursor-pointer transition-all">
+                    <div class="flex items-start gap-3" onclick="window.toggleFocusText('${id}')">
+                        <span class="material-icons-round mt-0.5" style="color: ${colorStr}; font-size: 18px;">${icon}</span>
+                        <div class="flex-1">
+                            <h4 class="text-[13px] font-semibold text-slate-900">${title} — Điểm rủi ro: ${Math.round(riskScore)}%</h4>
+                            <p class="text-[12px] text-slate-700 mt-1">${rec}</p>
+                        </div>
+                    </div>
+
+                    <button type="button" class="self-start flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-800 transition-colors pl-7" onclick="event.stopPropagation(); window.toggleCardDetail('${id}')">
+                        <span class="material-icons-round text-[15px] detail-chevron" id="chevron-${id}">expand_more</span>
+                        <span id="detail-label-${id}">Xem chi tiết phân tích</span>
+                    </button>
+
+                    <div id="detail-${id}" class="hidden flex-col gap-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="rounded-xl border border-emerald-300/40 bg-emerald-500/5 p-3">
+                                <div class="text-[11px] font-semibold text-emerald-700 mb-1">📊 Chất lượng bằng chứng</div>
+                                <div class="text-[12px] text-slate-700">${evidenceReasons.length ? evidenceReasons.join('; ') : 'Chưa có đánh giá cụ thể.'}</div>
+                            </div>
+                            <div class="rounded-xl border border-amber-300/40 bg-amber-500/5 p-3">
+                                <div class="text-[11px] font-semibold text-amber-700 mb-1">⚡ Phản biện</div>
+                                <div class="text-[12px] text-slate-700">${counterArgs.length ? counterArgs.join('; ') : 'Chưa có phản biện cụ thể.'}</div>
+                            </div>
+                        </div>
+
+                        ${patterns.length ? `<div class="rounded-xl border border-red-300/40 bg-red-500/5 p-3">
+                            <div class="text-[11px] font-semibold text-red-700 mb-1">⚠️ Dấu hiệu ảo giác AI</div>
+                            <div class="text-[12px] text-slate-700">${patterns.join('; ')}</div>
+                        </div>` : ''}
+
+                        ${fallacies.length ? `<div class="rounded-xl border border-orange-300/40 bg-orange-500/5 p-3">
+                            <div class="text-[11px] font-semibold text-orange-700 mb-1">🧩 Ngụy biện logic</div>
+                            <div class="text-[12px] text-slate-700">${fallacies.join('; ')}</div>
+                        </div>` : ''}
+                    </div>
+                </div>`;
+
+                tableHTML += `
+                <div class="mb-4 pl-4 pr-2">
+                    <div class="font-bold">${statusLabel} – Luận điểm ${index + 1}:</div>
+                    <div class="my-1">"${item.segment}"</div>
+                    <div class="pl-4 text-[12px]">→ ${rec}</div>
+                    ${evidenceReasons.length ? `<div class="pl-4 text-[12px] text-slate-600">📊 ${evidenceReasons.join('; ')}</div>` : ''}
+                    ${counterArgs.length ? `<div class="pl-4 text-[12px] text-slate-600">⚡ ${counterArgs.join('; ')}</div>` : ''}
+                    ${patterns.length ? `<div class="pl-4 text-[12px] text-red-600">⚠️ ${patterns.join('; ')}</div>` : ''}
+                    ${fallacies.length ? `<div class="pl-4 text-[12px] text-orange-600">🧩 ${fallacies.join('; ')}</div>` : ''}
+                    <div class="pl-4 text-[12px] text-slate-500">📚 Truy vấn: ${item.scholarQuery || item.segment}</div>
+                </div>`;
+            });
+
+            if (currentTextIndex < originalInputText.length) {
+                parsedHTML += originalInputText.substring(currentTextIndex).replace(/\n/g, '<br>');
+            }
+
+            aiInput.classList.add('hidden');
+            aiOutputParsed.innerHTML = parsedHTML;
+            aiOutputParsed.classList.remove('hidden');
+
+            document.getElementById('count-low').innerText = counts.low;
+            document.getElementById('count-medium').innerText = counts.medium;
+            document.getElementById('count-high').innerText = counts.high;
+
+            const total = counts.low + counts.medium + counts.high;
+            const confidence = total > 0 ? Math.round((counts.low / total) * 100) : 0;
+            document.getElementById('overall-confidence-bar').style.width = confidence + '%';
+            document.getElementById('overall-confidence-text').innerText = confidence + '%';
+
+            cardsContainer.innerHTML = cardsHTML;
+            reportTableBody.innerHTML = tableHTML;
+
+            // PDF summary
+            document.getElementById('pdf-summary-low').innerText = counts.low;
+            document.getElementById('pdf-summary-medium').innerText = counts.medium;
+            document.getElementById('pdf-summary-high').innerText = counts.high;
+            document.getElementById('pdf-claim-count').innerText = total;
+            const trustBar = '█'.repeat(Math.round(confidence / 10)) + '░'.repeat(10 - Math.round(confidence / 10));
+            document.getElementById('pdf-trust-bar').innerText = `${trustBar}  ${confidence}%`;
+
+            const now = new Date();
+            document.getElementById('pdf-date').innerText = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+            stateScanning.classList.add('hidden');
+            stateScanning.classList.remove('flex');
+            stateResults.classList.remove('hidden');
+            stateResults.classList.add('flex');
+            isScanning = false;
+            btnScan.disabled = false;
+            hideApiError();
+
+            hasBeenAnalyzed = true;
+            referenceText = aiOutputParsed.innerText;
+            hideWarning();
+            updateCharCount();
+            pipelineStatus.classList.add('hidden');
+
+            if (dataArray.length) {
+                setTimeout(() => window.toggleFocusText('chunk-0'), 150);
+            }
+
+            // Xây dựng nội dung Reflection Log
+            let logHtml = '';
+            if (userScores && userScores.length > 0) {
+                 logHtml += `<div class="reflection-log-entry"><strong>Điểm đánh giá tin cậy của bạn:</strong> ${userScores.join(', ')} / 10</div>`;
+            }
+            logHtml += `<div class="reflection-log-entry"><strong>Kết quả phân tích từ hệ thống:</strong> ${dataArray.length} luận điểm, ${dataArray.filter(d => d.status === 'low').length} rủi ro thấp, ${dataArray.filter(d => d.status === 'medium').length} cần kiểm chứng, ${dataArray.filter(d => d.status === 'high').length} rủi ro cao</div>`;
+            reflectionData = logHtml;
+            
+            // Tính toán % chính xác và hiển thị Alert (áp dụng logic biên độ sai số <= 2)
+            if (userScores && userScores.length === dataArray.length && !userScores.includes(null)) {
+                let correctCount = 0;
+                let totalCount = dataArray.length;
+                
+                dataArray.forEach((item, index) => {
+                    const userRating = userScores[index];
+                    let actualScore;
+                    
+                    if (item.status === 'low') actualScore = 9; 
+                    else if (item.status === 'medium') actualScore = 6; 
+                    else actualScore = 2; 
+                    
+                    const diff = Math.abs(userRating - actualScore);
+                    if (diff <= 2) {
+                        correctCount++;
+                    }
+                });
+                
+                const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+                let msg = `Bạn đánh giá đúng ${correctCount}/${totalCount} luận điểm (độ chính xác ${accuracy}%).\n\n`;
+                if (accuracy >= 80) {
+                    msg += "🎉 Rất tốt! Bạn có khả năng phán đoán xuất sắc và tư duy phản biện sắc bén.";
+                } else if (accuracy >= 50) {
+                    msg += "👍 Khá tốt! Hãy tiếp tục rèn luyện để nhận diện thông tin nhạy bén hơn.";
+                } else {
+                    msg += "💡 Hãy chú ý hơn! Xem kỹ phân tích của hệ thống bên dưới để nhận diện các dấu hiệu ngụy biện hoặc thiếu nguồn gốc nhé.";
+                }
+
+                setTimeout(() => {
+                    showAlert('Kết quả tự đánh giá', msg, false);
+                }, 800);
+            }
+        };
+
+        // ===== CHALLENGE MODE =====
+        function openChallengeMode(claims) {
+            userScores = new Array(claims.length).fill(null); 
+
+            // 1. Box Hiển thị tổng quát các luận điểm
+            const previewContainer = document.getElementById('challenge-claims-preview');
+            let previewHtml = `
+            <div class="font-semibold text-slate-900 mb-3 flex items-center gap-2 text-[15px]">
+                <span class="material-icons-round text-red-400 text-[18px]">push_pin</span> Các luận điểm sẽ được phân tích:
+            </div>
+            <div class="space-y-2">`;
+            
+            claims.forEach((c, i) => {
+                previewHtml += `<div class="pb-2 border-b border-purple-100/50 last:border-0">${i+1}. ${c}</div>`;
+            });
+            previewHtml += `</div>`;
+            previewContainer.innerHTML = previewHtml;
+
+            // 2. Các block để chấm điểm từng luận điểm
+            const scoringContainer = document.getElementById('dynamic-scoring-container');
+            let scoringHtml = '';
+
+            claims.forEach((c, idx) => {
+                let buttonsHtml = '';
+                for(let score = 0; score <= 10; score++) {
+                    buttonsHtml += `<button type="button" class="rating-btn w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-[13px] rounded-lg bg-white border border-purple-200/60 text-slate-700 hover:bg-indigo-50 transition-all duration-200 shadow-sm" data-idx="${idx}" data-val="${score}">${score}</button>`;
+                }
+
+                scoringHtml += `
+                <div class="bg-white/50 border border-purple-200/60 rounded-xl p-4 shadow-sm">
+                    <label class="block text-[14px] font-semibold text-slate-900 mb-3 leading-relaxed">${idx + 1}. "${c}"</label>
+                    <div class="flex flex-wrap gap-1.5 sm:gap-2">
+                        ${buttonsHtml}
+                    </div>
+                    <div class="text-[11px] text-slate-500 font-medium mt-2">Mức độ tin cậy (0=hoàn toàn sai, 10=hoàn toàn đúng)</div>
+                </div>`;
+            });
+
+            scoringContainer.innerHTML = scoringHtml;
+
+            const btns = scoringContainer.querySelectorAll('.rating-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
+                    const val = parseInt(e.currentTarget.getAttribute('data-val'));
+                    
+                    userScores[idx] = val;
+
+                    const parent = btn.closest('.bg-white\\/50');
+                    parent.querySelectorAll('.rating-btn').forEach(b => {
+                        b.classList.remove('selected', 'bg-indigo-500', 'border-indigo-500', 'text-white', 'shadow-md');
+                        b.classList.add('bg-white', 'border-purple-200/60', 'text-slate-700');
+                    });
+                    
+                    e.currentTarget.classList.remove('bg-white', 'border-purple-200/60', 'text-slate-700');
+                    e.currentTarget.classList.add('selected', 'bg-indigo-500', 'border-indigo-500', 'text-white', 'shadow-md');
+                });
+            });
+
+            challengeModal.classList.remove('hidden');
+            challengeModal.classList.add('flex');
+        }
+
+        function closeChallenge() {
+            challengeModal.classList.add('hidden');
+            challengeModal.classList.remove('flex');
+        }
+
+        btnSkipChallenge.addEventListener('click', closeChallenge);
+
+        btnConfirmChallenge.addEventListener('click', async () => {
+            if (userScores.includes(null)) {
+                showAlert('Chưa hoàn thành', 'Vui lòng đánh giá mức độ tin cậy (0-10) cho tất cả các luận điểm trước khi xem kết quả.', true);
+                return;
+            }
+
+            closeChallenge();
+            await sleep(150);
+            await executeEduCheck();
+        });
+
+        // ===== EXECUTE =====
+
+        async function executeEduCheck() {
+            hideWarning();
+            setPanelOpen(true);
+
+            let textToAnalyze = aiInput.value;
+            if (aiInput.classList.contains('hidden')) {
+                textToAnalyze = aiOutputParsed.innerText;
+            }
+
+            const apiKey = apiKeyInput.value.trim();
+            if (!textToAnalyze.trim()) {
+                showAlert('Cảnh báo', 'Vui lòng dán văn bản để tiếp tục.', true);
+                return;
+            }
+            if (!apiKey) {
+                showAlert('Yêu cầu cấu hình', 'Vui lòng nhập Gemini API Key trong bảng điều khiển.', true);
+                return;
+            }
+
+            hideApiError();
+            stateIntro.classList.add('hidden');
+            stateScanning.classList.remove('hidden');
+            stateScanning.classList.add('flex');
+            btnScan.disabled = true;
+            isScanning = true;
+            pipelineStatus.classList.remove('hidden');
+            streamPreview.textContent = 'Đang chạy pipeline phân tích...';
+            streamPreview2.textContent = 'Đang chạy pipeline phân tích...';
+            streamTokenCount.textContent = '0 tokens';
+            streamStatusLabel.textContent = 'Đang xử lý...';
+            document.getElementById('stream-preview-wrapper').classList.remove('hidden');
+
+            try {
+                await runPipeline(
+                    textToAnalyze,
+                    apiKey,
+                    (results, claims, domain) => {
+                        streamPreview.textContent = `✅ Hoàn tất phân tích ${claims.length} luận điểm.`;
+                        streamStatusLabel.textContent = 'Hoàn tất';
+                        streamTokenCount.textContent = results.length + ' claims';
+                        setTimeout(() => {
+                            document.getElementById('stream-preview-wrapper').classList.add('hidden');
+                        }, 500);
+                        renderResults(results, domain);
+                    },
+                    (errMsg) => {
+                        showApiError(errMsg);
+                        showAlert('Lỗi phân tích', errMsg, true);
+                        resetUI();
+                    }
+                );
+            } catch (err) {
+                showAlert('Lỗi không mong đợi', err.message || 'Đã có lỗi xảy ra.', true);
+                resetUI();
+            }
+        }
+
+        // ===== SCAN BUTTON =====
+
+        btnScan.addEventListener('click', () => {
+            const text = aiInput.value.trim() || aiOutputParsed.innerText.trim();
+            if (!text) {
+                showAlert('Chưa có nội dung', 'Vui lòng nhập hoặc dán nội dung cần phân tích.', true);
+                return;
+            }
+            const claims = extractClaims(text);
+            openChallengeMode(claims);
+        });
+
+        // ===== RESET =====
+
+        btnReset.addEventListener('click', () => {
+            hideWarning();
+            if (aiOutputParsed.innerText.trim() !== '') {
+                aiInput.value = aiOutputParsed.innerText;
+            }
+            referenceText = aiInput.value;
+            aiOutputParsed.classList.add('hidden');
+            aiInput.classList.remove('hidden');
+            stateResults.classList.add('hidden');
+            stateResults.classList.remove('flex');
+            stateIntro.classList.remove('hidden');
+            btnScan.disabled = false;
+            isScanning = false;
+            document.getElementById('stream-preview-wrapper').classList.add('hidden');
+            pipelineStatus.classList.add('hidden');
+            hideApiError();
+            hasWarnedEdit = false;
+            focusedId = null;
+            currentResults = [];
+            reflectionData = null;
+            userScores = [];
+            updateCharCount();
+        });
+
+        // ===== REPORT =====
+
+        btnReport.addEventListener('click', () => {
+            reportModal.classList.remove('hidden');
+            reportModal.classList.add('flex');
+        });
+        document.getElementById('close-modal').addEventListener('click', () => {
+            reportModal.classList.add('hidden');
+            reportModal.classList.remove('flex');
+        });
+
+        // ===== TOGGLE PANEL =====
+
+        toggleExtBtn.addEventListener('click', () => {
+            const isOpen = extensionPanel.style.display === 'flex';
+            setPanelOpen(!isOpen);
+        });
+        closeExtBtn.addEventListener('click', () => setPanelOpen(false));
+
+        // ===== BI-DIRECTIONAL SYNC =====
+
+        window.toggleFocusText = function(cardId) {
+            if (focusedId === cardId) {
+                clearActiveStates();
+                focusedId = null;
+                return;
+            }
+            focusResultCard(cardId);
+            const segment = document.querySelector(`.clickable-segment[data-card-id="${cardId}"]`);
+            if (segment) {
+                segment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                segment.classList.add('segment-pulse');
+                setTimeout(() => segment.classList.remove('segment-pulse'), 1100);
+            }
+        };
+
+        window.toggleCardDetail = function(cardId) {
+            const detail = document.getElementById(`detail-${cardId}`);
+            const chevron = document.getElementById(`chevron-${cardId}`);
+            const label = document.getElementById(`detail-label-${cardId}`);
+            if (!detail) return;
+            const isHidden = detail.classList.contains('hidden');
+            if (isHidden) {
+                detail.classList.remove('hidden');
+                detail.classList.add('flex');
+                if (chevron) chevron.classList.add('rotated');
+                if (label) label.textContent = 'Ẩn chi tiết phân tích';
+            } else {
+                detail.classList.add('hidden');
+                detail.classList.remove('flex');
+                if (chevron) chevron.classList.remove('rotated');
+                if (label) label.textContent = 'Xem chi tiết phân tích';
+            }
+        };
+
+        function clearActiveStates() {
+            document.querySelectorAll('.result-card').forEach(c => c.classList.remove('active-card'));
+            document.querySelectorAll('.clickable-segment').forEach(s => {
+                s.classList.remove('active-segment');
+                s.style.opacity = '1';
+                s.style.fontWeight = 'normal';
+            });
+        }
+
+        function focusResultCard(cardId) {
+            clearActiveStates();
+            focusedId = cardId;
+            const card = document.querySelector(`[data-result-card="${cardId}"]`);
+            if (card) {
+                card.classList.add('active-card');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            const segment = document.querySelector(`.clickable-segment[data-card-id="${cardId}"]`);
+            if (segment) {
+                segment.classList.add('active-segment');
+                segment.style.fontWeight = '600';
+                document.querySelectorAll('.clickable-segment').forEach(other => {
+                    if (other.dataset.cardId !== cardId) other.style.opacity = '0.35';
+                });
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const segment = e.target.closest('.clickable-segment');
+            if (segment) focusResultCard(segment.dataset.cardId);
+        });
+
+        document.addEventListener('mouseover', (e) => {
+            if (focusedId !== null) return;
+            const segment = e.target.closest('.clickable-segment');
+            if (segment) {
+                const card = document.querySelector(`[data-result-card="${segment.dataset.cardId}"]`);
+                if (card) card.classList.add('active-card');
+                return;
+            }
+            const card = e.target.closest('.result-card');
+            if (card) {
+                const seg = document.querySelector(`.clickable-segment[data-card-id="${card.dataset.resultCard}"]`);
+                if (seg) seg.classList.add('active-segment');
+            }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            if (focusedId !== null) return;
+            if (e.target.closest('.clickable-segment') || e.target.closest('.result-card')) {
+                clearActiveStates();
+            }
+        });
+
+        // ===== PDF =====
+
+        btnDownloadPdf.addEventListener('click', () => {
+            const element = document.getElementById('pdf-content');
+            const opt = {
+                margin: 10,
+                filename: 'Bao_Cao_Phan_Bien_EduCheck.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            const originalText = btnDownloadPdf.innerHTML;
+            btnDownloadPdf.innerHTML = '<span class="loader w-3 h-3 mr-1" style="border-width:2px;"></span> Đang lưu...';
+            html2pdf().set(opt).from(element).save().then(() => {
+                btnDownloadPdf.innerHTML = originalText;
+            });
+        });
+
+        // ===== DARK MODE =====
+        document.getElementById('darkToggleBtn').addEventListener('click', () => {
+            showAlert('Giao diện', 'EduCheck đang sử dụng giao diện tối mặc định.', false);
+        });
+
+        // ===== ABORT =====
+        btnAbort.addEventListener('click', () => {
+            if (isScanning) {
+                resetUI();
+                hideApiError();
+                pipelineStatus.classList.add('hidden');
+            }
+        });
+
+        // ===== INIT =====
+        aiInput.value = '';
+        referenceText = '';
+        hasBeenAnalyzed = false;
+        hideWarning();
+        updateCharCount();
+        setPanelOpen(true);
+        pipelineStatus.classList.add('hidden');
+
+        console.log('✅ EduCheck Critical Thinking System loaded.');
+    </script>
+</body>
+</html>
