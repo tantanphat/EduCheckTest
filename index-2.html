@@ -239,26 +239,42 @@
     </style>
   </head>
   <body class="h-screen w-full font-sans overflow-hidden antialiased select-auto">
+    <!-- Ambient Background Blobs -->
     <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <div class="absolute w-[450px] h-[450px] rounded-full blur-[110px] bg-indigo-500/10 -top-24 -left-24"></div>
       <div class="absolute w-[500px] h-[500px] rounded-full blur-[130px] bg-purple-500/10 top-1/3 -right-32"></div>
       <div class="absolute w-[400px] h-[400px] rounded-full blur-[110px] bg-cyan-500/10 -bottom-20 left-1/3"></div>
     </div>
 
+    <!-- Mobile Sidebar Backdrop Overlay (Đã xóa backdrop-blur-sm để không bị mờ) -->
+    <div
+      id="sidebar-backdrop"
+      class="fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 hidden opacity-0"
+    ></div>
+
+    <!-- Floating Edge Open Handle (Visible on desktop/tablet when sidebar is collapsed) -->
+    <button
+      id="btn-sidebar-edge-open"
+      title="Open Sessions Tab (Mở tab session)"
+      class="hidden fixed left-0 top-1/2 -translate-y-1/2 z-30 w-7 h-14 bg-white/95 dark:bg-slate-900/95 border border-l-0 border-slate-200 dark:border-slate-800 rounded-r-xl shadow-lg items-center justify-center text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:w-9 transition-all cursor-pointer group"
+    >
+      <span class="material-icons-round text-[19px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+    </button>
+
     <div class="relative z-10 h-screen flex flex-col">
       <!-- ===== APP HEADER ===== -->
-      <header class="glass-header sticky top-0 z-30 px-3 sm:px-5 py-2.5 flex items-center justify-between gap-3 transition-colors flex-shrink-0">
-        <div class="flex items-center gap-3">
+      <header class="glass-header sticky top-0 z-30 px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 sm:gap-3 transition-colors flex-shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3">
           <!-- Toggle button cho Left Sidebar -->
           <button
             id="btn-toggle-left-sidebar"
-            title="Toggle Sidebar"
-            class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-all shadow-sm"
+            title="Toggle Sessions Tab (Tắt/Mở)"
+            class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-all shadow-sm active:scale-95"
           >
-            <span class="material-icons-round text-[19px]">menu_open</span>
+            <span id="icon-sidebar-toggle" class="material-icons-round text-[19px]">menu_open</span>
           </button>
 
-          <div class="flex items-center gap-2.5">
+          <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl grad-bg flex items-center justify-center flex-shrink-0 shadow-glow text-white">
               <span class="material-icons-round text-[18px]">psychology</span>
             </div>
@@ -267,7 +283,7 @@
                 <span class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">
                   Edu<span class="grad-text">Check</span>
                 </span>
-                <span class="inline-flex items-center gap-1 text-[9.5px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                <span class="inline-flex items-center gap-1 text-[9px] sm:text-[9.5px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                   <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
                   <span id="badge-copilot">AI Extension</span>
                 </span>
@@ -276,18 +292,12 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <!-- 🔒 BỘ CHUYỂN NGÔN NGỮ ĐÃ ẨN HOÀN TOÀN (English only) -->
-          <div id="lang-switcher" class="hidden" aria-hidden="true">
-            <button id="lang-vi-btn" type="button">VI</button>
-            <button id="lang-en-btn" type="button">EN</button>
-          </div>
-
+        <div class="flex items-center gap-1.5 sm:gap-2">
           <!-- NÚT CHUYỂN GIAO DIỆN SÁNG / TỐI -->
           <button
             id="themeToggleBtn"
             title="Toggle light/dark theme"
-            class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-sm"
+            class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-sm active:scale-95"
           >
             <span id="theme-icon" class="material-icons-round text-[18px]">light_mode</span>
           </button>
@@ -296,7 +306,7 @@
           <button
             id="toggleExtBtn"
             title="Open EduCheck AI Panel"
-            class="h-9 px-3 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1.5 transition-all text-xs font-bold shadow-sm"
+            class="h-9 px-2.5 sm:px-3 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1.5 transition-all text-xs font-bold shadow-sm active:scale-95"
           >
             <span class="material-icons-round text-[17px]">auto_awesome</span>
             <span class="hidden sm:inline" id="label-toggle-panel">AI Panel</span>
@@ -307,29 +317,24 @@
       <!-- ===== MAIN WORKSPACE ===== -->
       <div class="flex-1 flex overflow-hidden relative min-h-0">
         
-        <!-- ==================== SIDEBAR TRÁI ==================== -->
+        <!-- ==================== SIDEBAR TRÁI (Đã chuyển breakpoint lên lg: 1024px và nền đục) ==================== -->
         <aside
           id="app-sidebar"
-          class="flex flex-col w-[270px] sm:w-[285px] flex-shrink-0 border-r border-slate-200/90 dark:border-slate-800/80 bg-slate-50/90 dark:bg-[#0c1017] transition-all duration-300 z-20 select-none overflow-hidden"
+          class="fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-20 w-[275px] sm:w-[285px] max-w-[85vw] h-full flex flex-col flex-shrink-0 border-r border-slate-200/90 dark:border-slate-800/80 bg-slate-50 dark:bg-[#0c1017] shadow-2xl lg:shadow-none transition-all duration-300 select-none overflow-hidden -translate-x-full lg:translate-x-0"
         >
           <!-- Top Row Icons -->
           <div class="p-3 pb-2 flex items-center justify-between text-slate-400 dark:text-slate-500 border-b border-slate-200/60 dark:border-slate-800/60 flex-shrink-0">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
               <span class="w-6 h-6 rounded-lg bg-indigo-600/20 text-indigo-500 flex items-center justify-center text-xs font-black tracking-tighter">
                 ▲
               </span>
-              <button id="btn-sidebar-dock" title="Collapse Sidebar" class="hover:text-slate-800 dark:hover:text-white p-1 rounded transition-colors">
+              <button id="btn-sidebar-dock" title="Toggle Sessions Tab (Tắt/Mở)" class="hover:text-slate-800 dark:hover:text-white p-1 rounded transition-colors">
                 <span class="material-icons-round text-[17px] block">view_sidebar</span>
               </button>
             </div>
 
             <div class="flex items-center gap-1">
-              <button id="btn-hist-back" title="Previous Session" class="hover:text-slate-800 dark:hover:text-white p-1 rounded transition-colors">
-                <span class="material-icons-round text-[17px] block">arrow_back</span>
-              </button>
-              <button id="btn-hist-forward" title="Next Session" class="hover:text-slate-800 dark:hover:text-white p-1 rounded transition-colors">
-                <span class="material-icons-round text-[17px] block">arrow_forward</span>
-              </button>
+              <!-- Nút tìm kiếm -->
               <button id="btn-hist-search-toggle" title="Search Sessions" class="hover:text-slate-800 dark:hover:text-white p-1 rounded transition-colors">
                 <span class="material-icons-round text-[17px] block">search</span>
               </button>
@@ -376,10 +381,10 @@
         </aside>
 
         <!-- Trung tâm soạn thảo -->
-        <main class="flex-1 flex flex-col items-center overflow-y-auto px-4 sm:px-8 py-6 min-w-0 min-h-0">
-          <div class="w-full max-w-3xl mb-4 glass-card rounded-2xl p-4 border border-indigo-100 dark:border-indigo-900/40 shadow-sm flex items-start gap-3.5">
-            <div class="w-9 h-9 rounded-xl grad-bg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
-              <span class="material-icons-round text-[20px]">school</span>
+        <main class="flex-1 flex flex-col items-center overflow-y-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 min-w-0 min-h-0 w-full">
+          <div class="w-full max-w-3xl mb-3 sm:mb-4 glass-card rounded-2xl p-3.5 sm:p-4 border border-indigo-100 dark:border-indigo-900/40 shadow-sm flex items-start gap-3">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl grad-bg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+              <span class="material-icons-round text-[18px] sm:text-[20px]">school</span>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2">
@@ -388,16 +393,16 @@
                 </div>
                 <span class="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">v3.5 Pro</span>
               </div>
-              <p id="banner-desc" class="text-slate-600 dark:text-slate-400 text-xs mt-1 leading-relaxed">
+              <p id="banner-desc" class="text-slate-600 dark:text-slate-400 text-[11px] sm:text-xs mt-1 leading-relaxed">
                 EduCheck decomposes argument structures, dissects individual claims, evaluates scholarly evidence, flags logical fallacies, and spots AI hallucinations — keeping you in full intellectual control.
               </p>
             </div>
           </div>
 
           <!-- KHUNG SOẠN THẢO -->
-          <div class="w-full max-w-3xl glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-glass relative flex flex-col">
-            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-800 text-xs">
-              <div class="flex items-center gap-2">
+          <div class="w-full max-w-3xl glass-card rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-glass relative flex flex-col">
+            <div class="flex items-center justify-between pb-2.5 sm:pb-3 mb-2.5 sm:mb-3 border-b border-slate-200/80 dark:border-slate-800 text-xs">
+              <div class="flex items-center gap-1.5 sm:gap-2">
                 <span class="material-icons-round text-[18px] text-indigo-500">edit_note</span>
                 <span id="canvas-status-label" class="font-bold text-slate-800 dark:text-slate-200">Text Under Verification</span>
                 <span id="detected-lang-badge" class="hidden text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
@@ -407,27 +412,27 @@
                   Session
                 </span>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 sm:gap-3">
                 <span id="editor-hint" class="hidden text-[11px] text-amber-500 font-medium items-center gap-1">
                   <span class="material-icons-round text-[13px]">edit</span>
                   <span id="label-editor-hint">Interactive Mode (Click to edit)</span>
                 </span>
-                <span id="char-count" class="font-mono text-[11px] text-slate-400">0 / 10,000 chars</span>
+                <span id="char-count" class="font-mono text-[10.5px] sm:text-[11px] text-slate-400">0 / 10,000 chars</span>
               </div>
             </div>
 
-            <div class="relative min-h-[42vh]">
+            <div class="relative min-h-[36vh] sm:min-h-[42vh]">
               <textarea
                 id="ai-input"
                 maxlength="10000"
                 placeholder="Paste the text you want to verify here... (Press Ctrl + Enter to analyze)"
-                class="w-full h-[45vh] bg-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 resize-none outline-none leading-relaxed text-[14.5px] font-sans"
+                class="w-full h-[38vh] sm:h-[45vh] bg-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 resize-none outline-none leading-relaxed text-[13.5px] sm:text-[14.5px] font-sans"
               ></textarea>
 
               <!-- ĐÃ KHÓA CHỈNH SỬA (contenteditable="false") -->
               <div
                 id="ai-output-parsed"
-                class="hidden h-[45vh] overflow-y-auto text-slate-800 dark:text-slate-100 leading-relaxed text-[14.5px] space-y-2 outline-none whitespace-pre-wrap scroll-smooth p-1 font-sans"
+                class="hidden h-[38vh] sm:h-[45vh] overflow-y-auto text-slate-800 dark:text-slate-100 leading-relaxed text-[13.5px] sm:text-[14.5px] space-y-2 outline-none whitespace-pre-wrap scroll-smooth p-1 font-sans"
                 style="white-space: pre-wrap"
                 contenteditable="false"
                 spellcheck="false"
@@ -436,7 +441,7 @@
             </div>
 
             <!-- Pipeline -->
-            <div id="pipeline-status" class="hidden w-full mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+            <div id="pipeline-status" class="hidden w-full mt-3 sm:mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800">
               <div class="flex items-center justify-between mb-2 text-xs">
                 <div class="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
                   <span class="material-icons-round text-[16px] text-indigo-500 animate-spin">autorenew</span>
@@ -445,7 +450,8 @@
                 <span id="pipeline-step-label" class="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">Initializing...</span>
               </div>
 
-              <div class="grid grid-cols-6 gap-1.5 py-1">
+              <!-- Responsive Pipeline Steps (3 cols on mobile, 6 on desktop) -->
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 py-1">
                 <div class="pipeline-step active flex flex-col items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-[10px] font-bold text-center" data-step="0">
                   <span class="step-icon material-icons-round text-[15px] mb-0.5">architecture</span>
                   <span class="step-name">Structure</span>
@@ -498,16 +504,17 @@
             </button>
           </div>
 
-          <div class="w-full max-w-3xl mt-3 flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 text-center pb-6">
+          <div class="w-full max-w-3xl mt-3 flex items-center justify-center gap-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 text-center pb-6">
             <span class="material-icons-round text-[15px] text-emerald-500">shield_lock</span>
             <span id="bottom-privacy-label">100% Private. Data & session history are persisted in browser Cookies and Storage securely.</span>
           </div>
         </main>
 
-        <!-- ===== AI EXTENSION SIDE PANEL ===== -->
+        <!-- ===== AI EXTENSION SIDE PANEL (Responsive Mobile overlay) ===== -->
         <div
           id="extension-panel"
-          class="flex flex-col fixed inset-0 z-40 sm:static sm:inset-auto sm:z-auto w-full sm:w-[420px] lg:w-[440px] flex-shrink-0 sm:my-3 sm:mr-3 sm:rounded-2xl glass-card sm:border sm:border-slate-200 dark:sm:border-slate-800 shadow-2xl overflow-hidden slide-in-right"
+          class="flex flex-col fixed inset-0 z-40 lg:static lg:inset-auto lg:z-auto w-full lg:w-[400px] xl:w-[440px] flex-shrink-0 lg:my-3 lg:mr-3 lg:rounded-2xl glass-card lg:border lg:border-slate-200 dark:lg:border-slate-800 shadow-2xl overflow-hidden slide-in-right"
+          style="display: none;"
         >
           <div class="glass-header px-4 py-3 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 flex-shrink-0">
             <div class="flex items-center gap-2.5">
@@ -630,17 +637,17 @@
               </div>
 
               <div class="grid grid-cols-3 gap-2 flex-shrink-0">
-                <div class="glass-card border border-emerald-300/40 dark:border-emerald-900/60 rounded-xl p-2.5 text-center">
-                  <div id="count-low" class="text-lg font-black text-emerald-500 dark:text-emerald-400">0</div>
-                  <div id="metric-label-low" class="text-[9.5px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">LOW RISK</div>
+                <div class="glass-card border border-emerald-300/40 dark:border-emerald-900/60 rounded-xl p-2 sm:p-2.5 text-center">
+                  <div id="count-low" class="text-base sm:text-lg font-black text-emerald-500 dark:text-emerald-400">0</div>
+                  <div id="metric-label-low" class="text-[8.5px] sm:text-[9.5px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">LOW RISK</div>
                 </div>
-                <div class="glass-card border border-amber-300/40 dark:border-amber-900/60 rounded-xl p-2.5 text-center">
-                  <div id="count-medium" class="text-lg font-black text-amber-500 dark:text-amber-400">0</div>
-                  <div id="metric-label-med" class="text-[9.5px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">NEEDS REVIEW</div>
+                <div class="glass-card border border-amber-300/40 dark:border-amber-900/60 rounded-xl p-2 sm:p-2.5 text-center">
+                  <div id="count-medium" class="text-base sm:text-lg font-black text-amber-500 dark:text-amber-400">0</div>
+                  <div id="metric-label-med" class="text-[8.5px] sm:text-[9.5px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">NEEDS REVIEW</div>
                 </div>
-                <div class="glass-card border border-rose-300/40 dark:border-rose-900/60 rounded-xl p-2.5 text-center">
-                  <div id="count-high" class="text-lg font-black text-rose-500 dark:text-rose-400">0</div>
-                  <div id="metric-label-high" class="text-[9.5px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">HIGH RISK</div>
+                <div class="glass-card border border-rose-300/40 dark:border-rose-900/60 rounded-xl p-2 sm:p-2.5 text-center">
+                  <div id="count-high" class="text-base sm:text-lg font-black text-rose-500 dark:text-rose-400">0</div>
+                  <div id="metric-label-high" class="text-[8.5px] sm:text-[9.5px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">HIGH RISK</div>
                 </div>
               </div>
 
@@ -650,7 +657,7 @@
                   <span id="label-overall-conf">Overall Confidence</span>
                 </div>
                 <div class="flex items-center gap-2.5">
-                  <div class="w-24 sm:w-28 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div class="w-20 sm:w-28 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div id="overall-confidence-bar" class="h-full grad-bg rounded-full transition-all duration-500" style="width: 0%"></div>
                   </div>
                   <span id="overall-confidence-text" class="text-xs font-black text-slate-900 dark:text-white font-mono">0%</span>
@@ -675,7 +682,7 @@
         <!-- ===== SETTINGS MODAL ===== -->
         <div
           id="settings-modal"
-          class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-4 fade-in"
+          class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-3 sm:p-4 fade-in"
         >
           <div class="glass-card w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800">
             <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-800">
@@ -726,13 +733,13 @@
         <!-- ===== REPORT MODAL ===== -->
         <div
           id="report-modal"
-          class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-3 sm:p-6 fade-in"
+          class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden items-center justify-center p-2 sm:p-6 fade-in"
         >
-          <div class="glass-card w-full max-w-4xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
-            <div class="px-5 py-3.5 flex justify-between items-center border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+          <div class="glass-card w-full max-w-4xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[95vh] sm:max-h-[92vh] overflow-hidden">
+            <div class="px-4 sm:px-5 py-3 sm:py-3.5 flex justify-between items-center border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
               <div class="flex items-center gap-2 text-slate-900 dark:text-white">
                 <span class="material-icons-round text-indigo-500 text-[20px]">assessment</span>
-                <span id="report-modal-header" class="text-sm font-bold">Critical Thinking & Verification Report</span>
+                <span id="report-modal-header" class="text-xs sm:text-sm font-bold">Critical Thinking & Verification Report</span>
               </div>
               <button
                 id="close-modal"
@@ -742,25 +749,25 @@
               </button>
             </div>
 
-            <div class="px-5 py-2.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-shrink-0 bg-slate-50 dark:bg-slate-900/60">
-              <span id="report-modal-sub" class="text-xs text-slate-500">Academic-standard verification report preview</span>
+            <div class="px-4 sm:px-5 py-2.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-shrink-0 bg-slate-50 dark:bg-slate-900/60">
+              <span id="report-modal-sub" class="text-[11px] sm:text-xs text-slate-500">Academic-standard verification report preview</span>
               <button
                 id="btn-download-pdf"
-                class="grad-bg grad-bg-hover px-4 py-2 text-xs text-white flex items-center gap-1.5 rounded-lg font-bold transition-all shadow-glow"
+                class="grad-bg grad-bg-hover px-3 sm:px-4 py-2 text-xs text-white flex items-center gap-1.5 rounded-lg font-bold transition-all shadow-glow"
               >
                 <span class="material-icons-round text-[16px]">download</span>
                 <span id="label-download-pdf">Download PDF</span>
               </button>
             </div>
 
-            <div class="p-4 sm:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-950 flex-1">
+            <div class="p-3 sm:p-6 overflow-y-auto bg-slate-100 dark:bg-slate-950 flex-1">
               <div
                 id="pdf-content"
-                class="bg-white text-slate-900 p-6 sm:p-10 mx-auto text-left rounded-xl shadow-lg border border-slate-200"
+                class="bg-white text-slate-900 p-5 sm:p-10 mx-auto text-left rounded-xl shadow-lg border border-slate-200"
                 style="width: 100%; max-width: 820px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 13px; line-height: 1.6;"
               >
                 <div class="text-center mb-6">
-                  <div id="pdf-report-title" class="font-black text-[20px] text-slate-900 tracking-tight">
+                  <div id="pdf-report-title" class="font-black text-lg sm:text-[20px] text-slate-900 tracking-tight">
                     CRITICAL THINKING & VERIFICATION REPORT
                   </div>
                   <div class="text-indigo-600 font-semibold text-xs mt-1">
@@ -771,7 +778,7 @@
                   </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
                   <div>
                     <span class="text-slate-500" id="pdf-label-date">Generated Date:</span>
                     <strong id="pdf-date" class="ml-1 text-slate-800"></strong>
@@ -785,13 +792,13 @@
                 <div class="mb-4">
                   <div id="pdf-label-summary" class="font-bold text-xs uppercase tracking-wider text-slate-700 mb-2">📊 CREDIBILITY OVERVIEW</div>
                   <div class="grid grid-cols-3 gap-2 text-xs mb-3">
-                    <div class="p-2.5 rounded border border-emerald-200 bg-emerald-50 text-emerald-800">
+                    <div class="p-2 sm:p-2.5 rounded border border-emerald-200 bg-emerald-50 text-emerald-800 text-center sm:text-left">
                       🟢 <span id="pdf-text-low">LOW RISK</span>: <strong id="pdf-summary-low">0</strong>
                     </div>
-                    <div class="p-2.5 rounded border border-amber-200 bg-amber-50 text-amber-800">
+                    <div class="p-2 sm:p-2.5 rounded border border-amber-200 bg-amber-50 text-amber-800 text-center sm:text-left">
                       🟡 <span id="pdf-text-med">NEEDS REVIEW</span>: <strong id="pdf-summary-medium">0</strong>
                     </div>
-                    <div class="p-2.5 rounded border border-rose-200 bg-rose-50 text-rose-800">
+                    <div class="p-2 sm:p-2.5 rounded border border-rose-200 bg-rose-50 text-rose-800 text-center sm:text-left">
                       🔴 <span id="pdf-text-high">HIGH RISK</span>: <strong id="pdf-summary-high">0</strong>
                     </div>
                   </div>
@@ -813,21 +820,13 @@
           </div>
         </div>
 
-        <!-- ===== EDIT WARNING (Ẩn vì không còn tính năng chỉnh sửa trực tiếp) ===== -->
+        <!-- ===== EDIT WARNING ===== -->
         <div
           id="edit-warning-label"
           class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold shadow-lg backdrop-blur-sm animate-bounce"
         >
           <span class="material-icons-round text-[18px]">warning</span>
           <span id="edit-warning-text">Content has been edited since the previous analysis</span>
-        </div>
-
-        <!-- ===== LANG WARNING TOAST (Disabled — kept for safety) ===== -->
-        <div
-          id="lang-warning-toast"
-          class="hidden"
-        >
-          <span id="lang-warning-text">...</span>
         </div>
 
         <!-- ===== ALERT MODAL ===== -->
@@ -862,7 +861,75 @@
     <script type="module">
       // ===== I18N DICTIONARY =====
       const i18n = {
-        vi: { /* Giữ nguyên như file gốc */ },
+        vi: {
+          docTitle: "EduCheck — AI Trợ Lý Tư Duy Phản Biện",
+          badgeCopilot: "AI Extension",
+          emptyHistory: "Chưa có phiên làm việc nào",
+          deleteSessionPrompt: "Bạn có chắc chắn muốn xóa phiên làm việc này?",
+          clearAllHistPrompt: "Bạn có chắc chắn muốn xóa TOÀN BỘ lịch sử phiên trong Cookie?",
+          allClearedToast: "Đã xóa toàn bộ lịch sử.",
+          sessionLoadedToast: "Đã khôi phục phiên phân tích.",
+          settingsModalTitle: "Cài đặt & Lịch sử lưu trữ EduCheck",
+          labelStorageTitle: "Trạng thái Cookie & Bộ nhớ trình duyệt",
+          labelStorageDesc: "Các phiên làm việc và kết quả phân tích được tự động đồng bộ vào Cookies và LocalStorage để luôn sẵn sàng khi tải lại trang.",
+          labelTotalSessions: "Tổng số phiên đã lưu:",
+          labelManageHistory: "Quản lý lịch sử kiểm tra",
+          labelClearAllBtn: "Xóa toàn bộ phiên trong Cookie",
+          bannerTitle: "EduCheck Critical Thinking Copilot",
+          bannerDesc: "EduCheck phân tích cấu trúc luận điểm, đối chiếu bằng chứng học thuật, rà soát ngụy biện logic và phát hiện dấu hiệu ảo giác AI — giúp bạn làm chủ hoàn toàn nhận định của mình.",
+          canvasStatus: "Văn bản cần kiểm chứng",
+          editorHint: "Chế độ xem tương tác",
+          inputPlaceholder: "Dán văn bản cần kiểm chứng tại đây... (Nhấn Ctrl + Enter để phân tích)",
+          pipelineHeader: "Pipeline Phản Biện Đa Lớp",
+          stepNames: ["Cấu trúc", "Tách luận", "Tối ưu", "Rà soát", "Hội đồng AI", "Báo cáo"],
+          btnScan: "Phân tích với EduCheck",
+          btnScanAnalyzing: "Đang phân tích phản biện...",
+          bottomPrivacy: "Bảo mật 100%. Dữ liệu và lịch sử phiên được lưu an toàn trong Cookie và bộ nhớ thiết bị.",
+          panelTitle: "EduCheck Inspector",
+          panelSubtitle: "Bảng kiểm chứng luận điểm",
+          apiTitle: "Cấu hình Gemini API",
+          apiDesc: "Nhập khóa Google Gemini API để chạy pipeline phân tích phản biện. Khóa được lưu an toàn cục bộ.",
+          apiKeyPlaceholder: "Dán API Key (AIzaSy...)",
+          getKeyFree: "Lấy khóa API miễn phí từ Google AI Studio ↗",
+          readyTitle: "Sẵn sàng phân tích",
+          readyDesc: "Dán nội dung vào khung soạn thảo và bấm \"Phân tích với EduCheck\" để bóc tách từng luận điểm.",
+          scanningHeader: "Đang phân tích luận điểm...",
+          labelAbort: "Hủy bỏ",
+          resultsHeadline: "Kết quả phân tích",
+          labelReset: "Sửa văn bản",
+          metricLow: "RỦI RO THẤP",
+          metricMed: "CẦN XEM LẠI",
+          metricHigh: "RỦI RO CAO",
+          labelOverallConf: "Độ tin cậy tổng thể",
+          btnReport: "Xuất Báo Cáo Phản Biện",
+          reportModalHeader: "Báo cáo kiểm chứng & Tư duy phản biện",
+          reportModalSub: "Xem trước báo cáo thẩm định chuẩn học thuật",
+          btnDownloadPdf: "Tải file PDF",
+          editWarning: "Nội dung đã được chỉnh sửa so với lần phân tích trước",
+          alertTitleInfo: "Thông báo",
+          alertTitleWarn: "Cảnh báo",
+          alertTitleErr: "Lỗi hệ thống",
+          emptyInputAlert: "Vui lòng dán hoặc nhập nội dung văn bản để phân tích.",
+          emptyKeyAlert: "Vui lòng nhập Gemini API Key trong panel bên phải.",
+          alreadyCompletedAlert: "Phân tích đã hoàn thành. Hãy bấm 'Sửa văn bản' hoặc '+' để tạo phiên mới.",
+          charCount: (c, m) => `${c.toLocaleString('vi-VN')} / ${m.toLocaleString('vi-VN')} ký tự`,
+          scholarButton: "Tra cứu Google Scholar",
+          toggleDetailsOpen: "Xem chi tiết phân tích",
+          toggleDetailsClose: "Ẩn chi tiết phân tích",
+          riskScoreLabel: "Điểm rủi ro",
+          evidenceHeading: "📊 Chất lượng bằng chứng học thuật",
+          counterHeading: "⚡ Góc nhìn phản biện & Luận điểm ngược lại",
+          hallucinationHeading: "⚠️ Dấu hiệu có thể là ảo giác AI",
+          fallacyHeading: "🧩 Phát hiện ngụy biện logic",
+          pdfTitle: "BÁO CÁO PHÂN TÍCH TƯ DUY PHẢN BIỆN",
+          pdfDate: "Ngày tạo:",
+          pdfClaims: "Tổng số luận điểm đã thẩm định:",
+          pdfSummary: "📊 TỔNG QUAN ĐỘ TIN CẬY",
+          pdfTrustbar: "Độ tin cậy tổng thể:",
+          pdfDetails: "📄 CHI TIẾT BÓC TÁCH CÁC LUẬN ĐIỂM",
+          pdfFooter: "Báo cáo được tổng hợp tự động bởi EduCheck — AI Critical Thinking Copilot.",
+          justNow: "vừa xong"
+        },
         en: {
           docTitle: "EduCheck — AI Critical Thinking Coach",
           badgeCopilot: "AI Extension",
@@ -945,8 +1012,6 @@
       let currentResults = [];
       let analysisCompleted = false;
       let activeSessionId = null;
-      let lastWarnedLang = null;
-      let langWarningTimer = null;
 
       // ===== COOKIE UTILITIES =====
       function setCookie(name, value, days = 30) {
@@ -1025,7 +1090,10 @@
 
       // ===== DOM REFS =====
       const appSidebar = document.getElementById("app-sidebar");
+      const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+      const btnSidebarEdgeOpen = document.getElementById("btn-sidebar-edge-open");
       const btnToggleLeftSidebar = document.getElementById("btn-toggle-left-sidebar");
+      const iconSidebarToggle = document.getElementById("icon-sidebar-toggle");
       const btnSidebarDock = document.getElementById("btn-sidebar-dock");
       const btnNewConv = document.getElementById("btn-new-conversation");
       const sidebarSessionsList = document.getElementById("sidebar-sessions-list");
@@ -1033,8 +1101,6 @@
       const histSearchBox = document.getElementById("hist-search-box");
       const histSearchInput = document.getElementById("hist-search-input");
       const btnClearSearch = document.getElementById("btn-clear-search");
-      const btnHistBack = document.getElementById("btn-hist-back");
-      const btnHistForward = document.getElementById("btn-hist-forward");
       const btnOpenSettings = document.getElementById("btn-open-settings");
       const settingsModal = document.getElementById("settings-modal");
       const btnCloseSettings = document.getElementById("btn-close-settings");
@@ -1072,13 +1138,10 @@
       const pipelineStatus = document.getElementById("pipeline-status");
       const pipelineDetail = document.getElementById("pipeline-detail");
       const pipelineStepLabel = document.getElementById("pipeline-step-label");
-      const langViBtn = document.getElementById("lang-vi-btn");
-      const langEnBtn = document.getElementById("lang-en-btn");
       const themeToggleBtn = document.getElementById("themeToggleBtn");
       const themeIcon = document.getElementById("theme-icon");
       const btnToggleKeyVis = document.getElementById("btn-toggle-key-vis");
       const detectedLangBadge = document.getElementById("detected-lang-badge");
-      const langSwitcher = document.getElementById("lang-switcher");
 
       // Khôi phục API Key
       const savedKey = localStorage.getItem("educheck_gemini_key");
@@ -1087,7 +1150,115 @@
         localStorage.setItem("educheck_gemini_key", apiKeyInput.value.trim());
       });
 
-      // ===== RENDERING SIDEBAR =====
+      // =========================================================================
+      // ===== AUTO DISPLAY DESKTOP & MOBILE & TAB SESSION TOGGLE CONTROLLER =====
+      // =========================================================================
+      // Đã nâng breakpoint lên 1024px (mốc lg của Tailwind) để iPad/Laptop nhỏ dùng Drawer
+      let isMobile = window.innerWidth < 1024; 
+      let isSidebarOpen = !isMobile; // Desktop: mở mặc định, Mobile: đóng mặc định
+
+      function setSidebarOpen(open) {
+        isSidebarOpen = open;
+        isMobile = window.innerWidth < 1024;
+
+        if (isMobile) {
+          // --- CHẾ ĐỘ MOBILE/TABLET (DRAWER OVERLAY TRÊN MÀN HÌNH NHỎ) ---
+          appSidebar.classList.remove("-ml-[275px]", "sm:-ml-[285px]", "ml-0");
+          if (open) {
+            appSidebar.classList.remove("-translate-x-full");
+            appSidebar.classList.add("translate-x-0");
+            sidebarBackdrop.classList.remove("hidden");
+            requestAnimationFrame(() => {
+              sidebarBackdrop.classList.remove("opacity-0");
+              sidebarBackdrop.classList.add("opacity-100");
+            });
+          } else {
+            appSidebar.classList.add("-translate-x-full");
+            appSidebar.classList.remove("translate-x-0");
+            sidebarBackdrop.classList.remove("opacity-100");
+            sidebarBackdrop.classList.add("opacity-0");
+            setTimeout(() => {
+              if (!isSidebarOpen) sidebarBackdrop.classList.add("hidden");
+            }, 300);
+          }
+          if (btnSidebarEdgeOpen) {
+            btnSidebarEdgeOpen.classList.add("hidden");
+            btnSidebarEdgeOpen.classList.remove("flex");
+          }
+        } else {
+          // --- CHẾ ĐỘ DESKTOP (COLLAPSIBLE SIDE-BY-SIDE DOCK) ---
+          sidebarBackdrop.classList.add("hidden", "opacity-0");
+          sidebarBackdrop.classList.remove("opacity-100");
+          appSidebar.classList.remove("-translate-x-full", "translate-x-0");
+
+          if (open) {
+            appSidebar.classList.remove("-ml-[275px]", "sm:-ml-[285px]");
+            appSidebar.classList.add("ml-0");
+            if (btnSidebarEdgeOpen) {
+              btnSidebarEdgeOpen.classList.add("hidden");
+              btnSidebarEdgeOpen.classList.remove("flex");
+            }
+          } else {
+            appSidebar.classList.add("-ml-[275px]", "sm:-ml-[285px]");
+            appSidebar.classList.remove("ml-0");
+            if (btnSidebarEdgeOpen) {
+              btnSidebarEdgeOpen.classList.remove("hidden");
+              btnSidebarEdgeOpen.classList.add("flex");
+            }
+          }
+        }
+
+        // Cập nhật icon trên thanh tiêu đề ứng dụng
+        if (iconSidebarToggle) {
+          iconSidebarToggle.innerText = open ? "menu_open" : "arrow_forward";
+        }
+        if (btnToggleLeftSidebar) {
+          btnToggleLeftSidebar.title = open ? "Close Sessions Tab" : "Open Sessions Tab";
+        }
+      }
+
+      // TỰ ĐỘNG NHẬN DIỆN MÀN HÌNH KHI RESIZE (AUTO DISPLAY DESKTOP / MOBILE)
+      let lastWindowWidth = window.innerWidth;
+      window.addEventListener("resize", () => {
+        const currentWidth = window.innerWidth;
+        const wasMobile = lastWindowWidth < 1024;
+        const isNowMobile = currentWidth < 1024;
+        lastWindowWidth = currentWidth;
+
+        if (wasMobile !== isNowMobile) {
+          if (isNowMobile) {
+            setSidebarOpen(false); 
+          } else {
+            setSidebarOpen(true);  
+          }
+        } else {
+          setSidebarOpen(isSidebarOpen);
+        }
+      });
+
+      // Nút mở sidebar ở mép màn hình khi sidebar đã thu gọn trên desktop
+      if (btnSidebarEdgeOpen) {
+        btnSidebarEdgeOpen.addEventListener("click", () => {
+          setSidebarOpen(true);
+        });
+      }
+
+      // Nút dock ở góc trên sidebar
+      btnSidebarDock.addEventListener("click", () => {
+        setSidebarOpen(!isSidebarOpen);
+      });
+
+      // Nút toggle trên thanh header
+      btnToggleLeftSidebar.addEventListener("click", () => {
+        setSidebarOpen(!isSidebarOpen);
+      });
+
+      // Bấm vào lớp mờ backdrop trên mobile để tắt tab session
+      sidebarBackdrop.addEventListener("click", () => {
+        setSidebarOpen(false);
+      });
+
+      // ===== RENDERING SIDEBAR SESSIONS =====
       function renderSidebarHistory(filterText = "") {
         const sessions = getSavedSessions();
         settingsSessionCount.innerText = sessions.length;
@@ -1215,6 +1386,11 @@
         setPanelOpen(true);
         renderSidebarHistory();
         showAlert(i18n[currentLang].alertTitleInfo, i18n[currentLang].sessionLoadedToast, false);
+
+        // Trên mobile/tablet: tự động đóng tab session sau khi chọn phiên
+        if (window.innerWidth < 1024) {
+          setSidebarOpen(false);
+        }
       }
 
       function deleteSessionById(sid) {
@@ -1271,22 +1447,14 @@
         updateCharCount();
         renderSidebarHistory();
         aiInput.focus();
+
+        // Trên mobile/tablet: đóng tab session để người dùng nhập văn bản ngay
+        if (window.innerWidth < 1024) {
+          setSidebarOpen(false);
+        }
       }
 
       btnNewConv.addEventListener("click", startNewConversation);
-
-      // Sidebar toggle
-      let isSidebarOpen = true;
-      function toggleSidebar() {
-        isSidebarOpen = !isSidebarOpen;
-        if (isSidebarOpen) {
-          appSidebar.classList.remove("-ml-[285px]");
-        } else {
-          appSidebar.classList.add("-ml-[285px]");
-        }
-      }
-      btnToggleLeftSidebar.addEventListener("click", toggleSidebar);
-      btnSidebarDock.addEventListener("click", toggleSidebar);
 
       // History search
       btnHistSearchToggle.addEventListener("click", () => {
@@ -1301,22 +1469,6 @@
       btnClearSearch.addEventListener("click", () => {
         histSearchInput.value = "";
         renderSidebarHistory("");
-      });
-
-      // History nav
-      btnHistBack.addEventListener("click", () => {
-        const sessions = getSavedSessions();
-        if (sessions.length === 0) return;
-        const curIdx = sessions.findIndex(s => s.id === activeSessionId);
-        const nextIdx = (curIdx + 1) < sessions.length ? curIdx + 1 : 0;
-        loadSessionById(sessions[nextIdx].id);
-      });
-      btnHistForward.addEventListener("click", () => {
-        const sessions = getSavedSessions();
-        if (sessions.length === 0) return;
-        const curIdx = sessions.findIndex(s => s.id === activeSessionId);
-        const prevIdx = (curIdx - 1) >= 0 ? curIdx - 1 : sessions.length - 1;
-        loadSessionById(sessions[prevIdx].id);
       });
 
       // Settings
@@ -1461,10 +1613,6 @@
         editWarningLabel.classList.remove("flex");
       }
 
-      function showWarning() {
-        // Không còn sử dụng do text đã bị khóa
-      }
-
       function showAlert(title, message, isError = false) {
         document.getElementById("alert-title").innerText = title;
         document.getElementById("alert-message").innerText = message;
@@ -1501,7 +1649,6 @@
         }
         updateCharCount();
       }
-      // Đã xóa sự kiện 'input' trên aiOutputParsed vì nó không thể chỉnh sửa được nữa
 
       function showApiError(message) {
         errorDetail.classList.remove("hidden");
@@ -1555,16 +1702,9 @@
         return { sentences: sentences.length, numbers, dates, orgs, verifiable };
       }
 
-      // ===== ĐÃ CẬP NHẬT HÀM NGẮT CÂU =====
       function extractClaims(text) {
-        // Tách câu dựa trên dấu chấm (.), chấm hỏi (?), chấm than (!)
-        // Dùng match để giữ lại dấu câu ở cuối, giúp việc highlight trên UI khớp chính xác 100%
         const raw = text.match(/[^.!?]+[.!?]*/g) || [];
-        
-        // Lọc các câu có độ dài > 15 ký tự (để tránh các câu quá ngắn vô nghĩa)
-        // Nếu bạn muốn phân tích TẤT CẢ các câu kể cả ngắn, hãy đổi số 15 thành 0
         const claims = raw.map((s) => s.trim()).filter((s) => s.length > 15);
-        
         return claims.length ? claims : [text.trim()];
       }
 
@@ -1828,7 +1968,7 @@ Return ONLY a valid raw JSON array:
           const rec = item.recommendation || "Evaluate with scrutiny.";
 
           cardsHTML += `
-            <div data-card-id="${id}" data-result-card="${id}" class="result-card p-3.5 ${bgStr} ${borderStr} rounded-xl border flex flex-col gap-2.5 cursor-pointer transition-all shadow-sm">
+            <div data-card-id="${id}" data-result-card="${id}" class="result-card p-3 sm:p-3.5 ${bgStr} ${borderStr} rounded-xl border flex flex-col gap-2.5 cursor-pointer transition-all shadow-sm">
               <div class="flex items-start gap-2.5" onclick="window.toggleFocusText('${id}')">
                 <span class="material-icons-round mt-0.5 flex-shrink-0" style="color: ${colorStr}; font-size: 20px;">${icon}</span>
                 <div class="flex-1 min-w-0">
@@ -1937,7 +2077,6 @@ Return ONLY a valid raw JSON array:
         aiOutputParsed.innerHTML = parsedHTML;
         aiOutputParsed.classList.remove("hidden");
         
-        // ẨN HOÀN TOÀN EDIT HINT VÌ KHÔNG CHO CHỈNH SỬA NỮA
         document.getElementById("editor-hint").classList.add("hidden");
 
         document.getElementById("count-low").innerText = counts.low;
@@ -2087,7 +2226,6 @@ Return ONLY a valid raw JSON array:
         focusedId = null;
         analysisCompleted = false;
         updateCharCount();
-        hideLangToast();
         hasBeenAnalyzed = false;
       });
 
@@ -2201,13 +2339,15 @@ Return ONLY a valid raw JSON array:
         }
       });
 
-      // ===== INIT (English only) =====
+      // ===== INIT =====
       setLanguage("en");
       renderSidebarHistory();
       setPanelOpen(false);
       updateCharCount();
+      // Khởi tạo trạng thái hiển thị tự động ban đầu
+      setSidebarOpen(!isMobile);
 
-      console.log("✅ EduCheck (English-only mode) initialized.");
+      console.log("✅ EduCheck (Auto Display Desktop & Mobile + Tab Session Controller) initialized.");
     </script>
   </body>
 </html>
