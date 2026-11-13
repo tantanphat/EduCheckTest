@@ -1094,7 +1094,7 @@
           refsFormat: "Định dạng",
           refsEmpty: "Chưa có tài liệu nào. Hãy xác minh DOI trong văn bản hoặc bấm \"+ Thêm vào TLTK\" ở các bài báo liên quan.",
           refsCount: (n) => `${n} tài liệu`,
-          refsHint: "Gồm các DOI đã xác minh trong văn bản và các bài báo bạn đã thêm. Hãy kiểm tra lại thông tin trước khi nộp bài.",
+          refsHint: "Cách dùng: (1) mở từng thẻ luận điểm và bấm \"+ Thêm vào TLTK\" ở bài báo bạn thấy phù hợp; (2) chọn định dạng APA / IEEE / BibTeX; (3) sao chép hoặc tải về rồi dán vào bài. Link DOI bấm được để bạn đối chiếu. Hãy đọc từng bài trước khi nộp.",
           refsDownload: "Tải về",
           // quiz modal
           quizTitle: "Quiz tư duy phản biện",
@@ -1114,6 +1114,8 @@
           rwGenerating: "Đang viết lại...",
           rwWarn: "Các trích dẫn [n] là gợi ý theo độ liên quan. Hãy đọc từng bài trước khi giữ lại. Chỗ ghi [cần nguồn] là chưa có nguồn phù hợp.",
           rwChanges: "Các thay đổi",
+          rwPreview: "Xem trước (bấm được vào link và số trích dẫn)",
+          rwSourcesHeading: "Nguồn đã trích dẫn — bấm để mở",
           rwApply: "Đưa vào ô soạn thảo",
           rwCopy: "Sao chép", rwDownload: "Tải .md",
           rwRefsHeading: "Tài liệu tham khảo",
@@ -1260,7 +1262,7 @@
           refsFormat: "Format",
           refsEmpty: "No references yet. Verify DOIs in your text or click \"+ Add to references\" on related papers.",
           refsCount: (n) => `${n} reference${n === 1 ? "" : "s"}`,
-          refsHint: "Includes DOIs verified in your text and papers you added. Double-check the details before submitting.",
+          refsHint: "How to use: (1) open a claim card and click \"+ Add to references\" on papers that fit; (2) pick APA / IEEE / BibTeX; (3) copy or download and paste into your paper. DOI links are clickable so you can check each one. Read each paper before submitting.",
           refsDownload: "Download",
           quizTitle: "Critical Thinking Quiz",
           quizIntro: "Generates multiple-choice questions from the errors and claims in your own text.",
@@ -1278,6 +1280,8 @@
           rwGenerating: "Rewriting...",
           rwWarn: "Citations [n] are relevance-based suggestions. Read each paper before keeping it. [citation needed] marks claims with no suitable source.",
           rwChanges: "Changes made",
+          rwPreview: "Preview (links and citation numbers are clickable)",
+          rwSourcesHeading: "Cited sources — click to open",
           rwApply: "Apply to editor",
           rwCopy: "Copy", rwDownload: "Download .md",
           rwRefsHeading: "References",
@@ -2899,7 +2903,7 @@ Claim: ${JSON.stringify(claim.text)}`;
       }
       function fmtIEEE(e, n) {
         const a = ieeeAuthors(e.authors || []);
-        return `[${n}] ${a ? a + ", " : ""}"${e.title},"${e.venue ? " " + e.venue + "," : ""} ${e.year || "n.d."}.${e.doi ? " doi: " + e.doi + "." : e.url ? " " + e.url : ""}`;
+        return `[${n}] ${a ? a + ", " : ""}"${e.title},"${e.venue ? " " + e.venue + "," : ""} ${e.year || "n.d."}.${linkOf(e) ? " " + linkOf(e) : ""}`;
       }
       function fmtBib(e) {
         const fam = ((e.authors || [])[0]?.family || "ref").normalize("NFD").replace(/[^A-Za-z]/g, "").toLowerCase() || "ref";
@@ -2907,6 +2911,24 @@ Claim: ${JSON.stringify(claim.text)}`;
         const q = (s) => String(s || "").replace(/([&%$#_])/g, "\\$1").replace(/[{}]/g, "");
         const au = (e.authors || []).filter((a) => a.family).map((a) => `${q(a.family)}${a.given ? ", " + q(a.given) : ""}`).join(" and ");
         return `@article{${fam}${e.year || ""}${word},\n${[au && `  author  = {${au}}`, `  title   = {${q(e.title)}}`, e.venue && `  journal = {${q(e.venue)}}`, e.year && `  year    = {${e.year}}`, e.doi && `  doi     = {${e.doi}}`].filter(Boolean).join(",\n")}\n}`;
+      }
+      // escape, then turn URLs into links (trailing punctuation stays outside the link)
+      function linkify(text) {
+        return esc(text).replace(/https?:\/\/[^\s<]+/g, (u) => {
+          const m = u.match(/[.,;:)]+$/);
+          const tail = m ? m[0] : "";
+          const url = tail ? u.slice(0, -tail.length) : u;
+          return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 dark:text-indigo-400 underline">${url}</a>${tail}`;
+        });
+      }
+      // preview of a rewritten text: URLs and [n] citations become clickable
+      function previewHTML(text, refs) {
+        return linkify(text).replace(/\[(\d+(?:, \d+)*)\]/g, (m, nums) =>
+          "[" + nums.split(", ").map((n) => {
+            const r = refs.find((x) => x.n === Number(n));
+            return r && r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer" title="${esc(r.title)}" class="text-indigo-600 dark:text-indigo-400 underline font-semibold">${n}</a>` : n;
+          }).join(", ") + "]"
+        );
       }
       function formatRefs(entries, fmt) {
         if (fmt === "ieee") return entries.map((e, i) => fmtIEEE(e, i + 1)).join("\n");
@@ -2933,7 +2955,10 @@ Claim: ${JSON.stringify(claim.text)}`;
         const entries = collectRefEntries();
         const fmt = document.getElementById("refs-format").value;
         const out = document.getElementById("refs-output");
-        out.textContent = entries.length ? formatRefs(entries, fmt) : t.refsEmpty;
+        const plain = entries.length ? formatRefs(entries, fmt) : t.refsEmpty;
+        out.dataset.plain = entries.length ? plain : "";
+        if (entries.length) out.innerHTML = linkify(plain);
+        else out.textContent = plain;
         out.classList.toggle("italic", !entries.length);
         document.getElementById("refs-count").textContent = t.refsCount(entries.length);
         document.getElementById("refs-copy").disabled = document.getElementById("refs-download").disabled = !entries.length;
@@ -2942,12 +2967,12 @@ Claim: ${JSON.stringify(claim.text)}`;
       document.getElementById("btn-open-refs").addEventListener("click", () => { renderRefsModal(); openModal("refs-modal"); });
       document.getElementById("refs-copy").addEventListener("click", async (e) => {
         const b = e.currentTarget, t = T();
-        try { await navigator.clipboard.writeText(document.getElementById("refs-output").textContent); b.dataset.old = b.dataset.old || b.textContent; b.textContent = t.cardCopied; } catch { b.textContent = t.cardCopyFail; }
+        try { await navigator.clipboard.writeText(document.getElementById("refs-output").dataset.plain); b.dataset.old = b.dataset.old || b.textContent; b.textContent = t.cardCopied; } catch { b.textContent = t.cardCopyFail; }
         setTimeout(() => (b.textContent = t.cardCopy), 1200);
       });
       document.getElementById("refs-download").addEventListener("click", () => {
         const fmt = document.getElementById("refs-format").value;
-        downloadBlob(fmt === "bibtex" ? "references.bib" : "references.txt", "text/plain", document.getElementById("refs-output").textContent);
+        downloadBlob(fmt === "bibtex" ? "references.bib" : "references.txt", "text/plain", document.getElementById("refs-output").dataset.plain);
       });
 
       // ---------- quiz ----------
@@ -3122,11 +3147,12 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
             if (!ok.length) return "";
             return "[" + ok.map((n) => { if (!order.includes(n)) order.push(n); return order.indexOf(n) + 1; }).join(", ") + "]";
           }).replace(/ {2,}/g, " ").replace(/ +([.,;:!?])/g, "$1");
+          const usedRefs = order.map((n, i) => { const sc = srcs.find((x) => x.n === n); return { n: i + 1, title: sc.title, url: linkOf(sc) }; });
           if (order.length) {
             const refLines = order.map((n, i) => fmtIEEE(srcs.find((s) => s.n === n), i + 1)).join("\n");
             text += `\n\n${t.rwRefsHeading}\n${refLines}`;
           }
-          currentRewrite = { text, changes: out.changes || [], sourceCount: srcs.length };
+          currentRewrite = { text, changes: out.changes || [], sourceCount: srcs.length, refs: usedRefs };
           syncSession();
           renderRewrite();
         } catch (e) {
@@ -3145,6 +3171,8 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
         }
         const changes = r.changes.map((c) => `<li class="flex gap-1.5"><span class="font-mono text-slate-400">#${esc(c.claim_id)}</span><b class="text-indigo-500">${esc(t.act[c.action] || c.action)}</b><span>${esc(c.note)}</span></li>`).join("");
         body.innerHTML = `<div class="text-[11px] text-amber-600 dark:text-amber-400 mb-2 leading-snug">⚠ ${esc(t.rwWarn)}</div>
+          <div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">${esc(t.rwPreview)}</div>
+          <div id="rw-preview" class="whitespace-pre-wrap break-words text-[12.5px] leading-relaxed p-3 mb-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-100 max-h-56 overflow-y-auto">${previewHTML(r.text, r.refs || [])}</div>
           <textarea id="rw-text" class="w-full h-64 text-[12.5px] leading-relaxed p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 outline-none focus:border-indigo-500">${esc(r.text)}</textarea>
           <div class="flex flex-wrap gap-2 mt-3">
             <button data-rw-action="apply" class="grad-bg text-white font-bold text-xs px-3 py-2 rounded-xl">${esc(t.rwApply)}</button>
@@ -3152,6 +3180,7 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
             <button data-rw-action="download" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200">${esc(t.rwDownload)}</button>
             <button data-rw-action="generate" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200">${esc(t.rwGenerate)}</button>
           </div>
+          ${(r.refs || []).length ? `<div class="mt-4"><div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">${esc(t.rwSourcesHeading)}</div><ul class="space-y-1 text-[11.5px]">${r.refs.map((x) => `<li><span class="font-mono text-slate-400">[${x.n}]</span> ${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 dark:text-indigo-400 underline">${esc(x.title)}</a>` : esc(x.title)}</li>`).join("")}</ul></div>` : ""}
           ${changes ? `<div class="mt-4"><div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">${esc(t.rwChanges)}</div><ul class="space-y-1 text-[11.5px] text-slate-600 dark:text-slate-300">${changes}</ul></div>` : ""}`;
       }
       function applyTextToEditor(txt) {
@@ -3160,6 +3189,10 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
         btnReset.click();
       }
       document.getElementById("btn-open-rewrite").addEventListener("click", () => { renderRewrite(); openModal("rewrite-modal"); });
+      document.getElementById("rewrite-body").addEventListener("input", (e) => {
+        if (e.target.id !== "rw-text") return;
+        document.getElementById("rw-preview").innerHTML = previewHTML(e.target.value, currentRewrite?.refs || []);
+      });
       document.getElementById("rewrite-body").addEventListener("click", async (e) => {
         const act = e.target.closest("[data-rw-action]")?.dataset.rwAction;
         if (!act) return;
