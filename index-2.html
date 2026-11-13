@@ -710,7 +710,7 @@
 
               <div class="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2 flex-shrink-0">
                 <div class="grid grid-cols-3 gap-2">
-                  <button id="btn-open-refs" class="px-2 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1"><span class="material-icons-round text-[15px]">format_quote</span><span data-i18n="btnRefs">References</span></button>
+                  <button id="btn-open-refs" class="px-2 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1"><span class="material-icons-round text-[15px]">format_quote</span><span data-i18n="btnRefs">References</span><span id="refs-badge" class="hidden px-1.5 rounded-full bg-indigo-600 text-white text-[10px] font-mono"></span></button>
                   <button id="btn-open-quiz" class="px-2 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1"><span class="material-icons-round text-[15px]">quiz</span><span data-i18n="btnQuiz">Quiz</span></button>
                   <button id="btn-open-rewrite" class="px-2 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-1"><span class="material-icons-round text-[15px]">auto_fix_high</span><span data-i18n="btnRewrite">Rewrite</span></button>
                 </div>
@@ -885,6 +885,7 @@
                 <option value="apa">APA 7</option><option value="ieee">IEEE</option><option value="bibtex">BibTeX</option>
               </select>
               <span id="refs-count" class="font-mono text-slate-500"></span>
+              <button id="refs-add-top" data-i18n="refsAddTop" class="hidden px-3 py-1.5 rounded-lg border border-indigo-300 dark:border-indigo-800 font-bold text-indigo-600 dark:text-indigo-400">Add the top paper of each claim</button>
               <span class="ml-auto flex gap-2">
                 <button id="refs-copy" data-i18n="cardCopy" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200 disabled:opacity-40">Copy</button>
                 <button id="refs-download" data-i18n="refsDownload" class="grad-bg text-white font-bold px-3 py-1.5 rounded-lg disabled:opacity-40">Download</button>
@@ -1096,6 +1097,13 @@
           refsCount: (n) => `${n} tài liệu`,
           refsHint: "Cách dùng: (1) mở từng thẻ luận điểm và bấm \"+ Thêm vào TLTK\" ở bài báo bạn thấy phù hợp; (2) chọn định dạng APA / IEEE / BibTeX; (3) sao chép hoặc tải về rồi dán vào bài. Link DOI bấm được để bạn đối chiếu. Hãy đọc từng bài trước khi nộp.",
           refsDownload: "Tải về",
+          refsAddTop: "Thêm bài đầu tiên của mỗi luận điểm",
+          refsDiag: {
+            off: "Chẩn đoán: tùy chọn \"Tìm bài báo liên quan\" đang tắt khi phân tích. Hãy bật rồi phân tích lại.",
+            err: (w) => `Chẩn đoán: không tra cứu được bài báo (${w}). Có thể OpenAlex bị chặn bởi mạng/trình duyệt.`,
+            none: "Chẩn đoán: không có bài báo nào được tìm thấy. Chỉ các luận điểm không phải ý kiến, có điểm đáng kiểm chứng hoặc rủi ro đủ cao mới được tra cứu.",
+            unselected: (n) => `Đã tìm thấy ${n} bài báo nhưng bạn chưa thêm bài nào. Mở thẻ luận điểm → "Bài báo liên quan" → "+ Thêm vào TLTK", hoặc bấm nút "Thêm bài đầu tiên của mỗi luận điểm" ở trên.`,
+          },
           // quiz modal
           quizTitle: "Quiz tư duy phản biện",
           quizIntro: "Tạo câu hỏi trắc nghiệm từ chính các lỗi và luận điểm trong văn bản của bạn.",
@@ -1264,6 +1272,13 @@
           refsCount: (n) => `${n} reference${n === 1 ? "" : "s"}`,
           refsHint: "How to use: (1) open a claim card and click \"+ Add to references\" on papers that fit; (2) pick APA / IEEE / BibTeX; (3) copy or download and paste into your paper. DOI links are clickable so you can check each one. Read each paper before submitting.",
           refsDownload: "Download",
+          refsAddTop: "Add the top paper of each claim",
+          refsDiag: {
+            off: "Diagnosis: the \"Find related papers\" option was off during analysis. Turn it on and re-analyze.",
+            err: (w) => `Diagnosis: paper lookup failed (${w}). OpenAlex may be blocked by your network or browser.`,
+            none: "Diagnosis: no papers were found. Only non-opinion claims with a high enough check-worthiness or risk are searched.",
+            unselected: (n) => `${n} papers were found but none is added yet. Open a claim card → "Related papers" → "+ Add to references", or use the "Add the top paper of each claim" button above.`,
+          },
           quizTitle: "Critical Thinking Quiz",
           quizIntro: "Generates multiple-choice questions from the errors and claims in your own text.",
           quizGenerate: "Generate quiz",
@@ -2826,6 +2841,7 @@ Claim: ${JSON.stringify(claim.text)}`;
         pipelineStatus.classList.add("hidden");
         analysisCompleted = true;
         applyFilter(currentFilter);
+        updateRefsBadge();
         if (dataArray.length) setTimeout(() => window.toggleFocusText("chunk-0"), 150);
       }
 
@@ -2950,12 +2966,41 @@ Claim: ${JSON.stringify(claim.text)}`;
         currentResults.forEach((r) => (r.papers || []).filter((p) => p.selected).forEach(add));
         return out;
       }
+      function paperBtnState(btn, on) {
+        const t = T();
+        btn.textContent = on ? t.cardAdded : t.cardAddRef;
+        ["bg-indigo-600", "text-white", "border-indigo-600"].forEach((c) => btn.classList.toggle(c, on));
+        ["border-slate-300", "dark:border-slate-600", "text-slate-600", "dark:text-slate-300"].forEach((c) => btn.classList.toggle(c, !on));
+      }
+      function refreshAddButtons() {
+        document.querySelectorAll("[data-add-paper]").forEach((btn) => {
+          const [ri, pi] = btn.dataset.addPaper.split(":").map(Number);
+          paperBtnState(btn, !!currentResults[ri]?.papers?.[pi]?.selected);
+        });
+        updateRefsBadge();
+      }
+      function updateRefsBadge() {
+        const n = collectRefEntries().length;
+        const b = document.getElementById("refs-badge");
+        b.textContent = n;
+        b.classList.toggle("hidden", !n);
+      }
       function renderRefsModal() {
         const t = T();
         const entries = collectRefEntries();
         const fmt = document.getElementById("refs-format").value;
         const out = document.getElementById("refs-output");
-        const plain = entries.length ? formatRefs(entries, fmt) : t.refsEmpty;
+        const found = currentResults.reduce((a, r) => a + (r.papers || []).length, 0);
+        const warn = (currentOverview?.warnings || []).find((w) => w.startsWith("Paper lookup"));
+        let diag = "";
+        if (!entries.length) {
+          if (found) diag = t.refsDiag.unselected(found);
+          else if (currentOverview?.options && currentOverview.options.sources === false) diag = t.refsDiag.off;
+          else if (warn) diag = t.refsDiag.err(warn.replace("Paper lookup unavailable: ", ""));
+          else diag = t.refsDiag.none;
+        }
+        document.getElementById("refs-add-top").classList.toggle("hidden", !found);
+        const plain = entries.length ? formatRefs(entries, fmt) : t.refsEmpty + (diag ? "\n\n" + diag : "");
         out.dataset.plain = entries.length ? plain : "";
         if (entries.length) out.innerHTML = linkify(plain);
         else out.textContent = plain;
@@ -2964,6 +3009,12 @@ Claim: ${JSON.stringify(claim.text)}`;
         document.getElementById("refs-copy").disabled = document.getElementById("refs-download").disabled = !entries.length;
       }
       document.getElementById("refs-format").addEventListener("change", renderRefsModal);
+      document.getElementById("refs-add-top").addEventListener("click", () => {
+        currentResults.forEach((r) => { if (r.papers?.length) r.papers[0].selected = true; });
+        syncSession();
+        refreshAddButtons();
+        renderRefsModal();
+      });
       document.getElementById("btn-open-refs").addEventListener("click", () => { renderRefsModal(); openModal("refs-modal"); });
       document.getElementById("refs-copy").addEventListener("click", async (e) => {
         const b = e.currentTarget, t = T();
@@ -3445,9 +3496,8 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
           const p = currentResults[ri]?.papers?.[pi];
           if (!p) return;
           p.selected = !p.selected;
-          ap.textContent = p.selected ? t.cardAdded : t.cardAddRef;
-          ["bg-indigo-600", "text-white", "border-indigo-600"].forEach((c) => ap.classList.toggle(c, p.selected));
-          ["border-slate-300", "dark:border-slate-600", "text-slate-600", "dark:text-slate-300"].forEach((c) => ap.classList.toggle(c, !p.selected));
+          paperBtnState(ap, p.selected);
+          updateRefsBadge();
           syncSession();
           return;
         }
