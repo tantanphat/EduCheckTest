@@ -2155,16 +2155,25 @@
         while ((m = ay.exec(text))) add({ type: "author-year", raw: `${m[1].trim()} (${m[2]})`, status: "unverifiable" });
         return refs.slice(0, 30);
       }
+      // NOTE: the AbortSignal is deliberately NOT passed to fetch(): in sandboxed/preview iframes the
+      // request is proxied via postMessage and an AbortSignal cannot be cloned. We race instead.
       async function fetchWithTimeout(url, ms, signal, init = {}) {
-        const ctrl = new AbortController();
-        const to = setTimeout(() => ctrl.abort(), ms);
-        const onAbort = () => ctrl.abort();
-        if (signal) signal.addEventListener("abort", onAbort);
+        abortCheck(signal);
+        let timer, onAbort;
+        const guard = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new DOMException("Request timed out", "TimeoutError")), ms);
+          if (signal) {
+            onAbort = () => reject(new DOMException("Aborted", "AbortError"));
+            signal.addEventListener("abort", onAbort);
+          }
+        });
+        const req = fetch(url, init);
+        req.catch(() => {});
         try {
-          return await fetch(url, { ...init, signal: ctrl.signal });
+          return await Promise.race([req, guard]);
         } finally {
-          clearTimeout(to);
-          if (signal) signal.removeEventListener("abort", onAbort);
+          clearTimeout(timer);
+          if (signal && onAbort) signal.removeEventListener("abort", onAbort);
         }
       }
       async function verifyDois(refs, signal) {
@@ -2215,7 +2224,7 @@
           } catch (err) {
             if (signal && signal.aborted) throw new DOMException("Aborted", "AbortError");
             lastErr = err;
-            if (attempt === 0 && (err.status === 429 || err.status >= 500 || err.name === "AbortError" || err.name === "TypeError")) {
+            if (attempt === 0 && (err.status === 429 || err.status >= 500 || err.name === "TimeoutError" || err.name === "TypeError")) {
               await sleep(1500);
               continue;
             }
