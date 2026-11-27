@@ -932,7 +932,6 @@
           emptyKeyAlert: "Vui lòng nhập Gemini API Key trong bảng bên phải.",
           alreadyCompletedAlert: "Đã phân tích xong. Bấm 'Sửa văn bản' hoặc '+' để tạo phiên mới.",
           charCount: (c, m) => `${c.toLocaleString("vi-VN")} / ${m.toLocaleString("vi-VN")} ký tự`,
-          scholarButton: "Tìm trên Google Scholar",
           toggleDetailsOpen: "Xem chi tiết",
           toggleDetailsClose: "Ẩn chi tiết",
           riskScoreLabel: "Điểm rủi ro",
@@ -970,8 +969,6 @@
           cardCitationCheck: "Kiểm tra trích dẫn",
           cardRewrite: "Gợi ý viết lại an toàn hơn",
           cardCopy: "Sao chép", cardCopied: "Đã chép", cardCopyFail: "Chép lỗi",
-          cardFactchecks: "Fact-check",
-          cardFactchecksTip: "Tìm các bài fact-check đã xuất bản",
           aiMissing: "Không có phân tích AI cho luận điểm này.",
           defaultRec: "Hãy đối chiếu với nguồn gốc.",
           // pipeline messages
@@ -1107,7 +1104,6 @@
           emptyKeyAlert: "Please provide your Gemini API key in the side panel.",
           alreadyCompletedAlert: "Analysis already completed. Click 'Edit Text' or '+' to start a new scan.",
           charCount: (c, m) => `${c.toLocaleString("en-US")} / ${m.toLocaleString("en-US")} chars`,
-          scholarButton: "Search Google Scholar",
           toggleDetailsOpen: "View details",
           toggleDetailsClose: "Hide details",
           riskScoreLabel: "Risk score",
@@ -1141,8 +1137,6 @@
           cardCitationCheck: "Citation check",
           cardRewrite: "Suggested safer rewrite",
           cardCopy: "Copy", cardCopied: "Copied", cardCopyFail: "Copy failed",
-          cardFactchecks: "Fact-checks",
-          cardFactchecksTip: "Search published fact-checks",
           aiMissing: "AI analysis unavailable for this claim.",
           defaultRec: "Verify against primary sources.",
           pipe: {
@@ -1992,11 +1986,6 @@
         const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
         return best && best[1] > 0 ? best[0] : "general";
       }
-      function buildScholarQuery(claim, domain, lang = "en") {
-        const q = claim.trim().replace(/[“"”]/g, "");
-        if (lang === "en") return q + (domain === "health" ? " clinical trial empirical study" : " peer-reviewed study");
-        return q + (domain === "health" ? " nghiên cứu thử nghiệm lâm sàng" : " nghiên cứu khoa học");
-      }
       const HAL = {
         unattributed: wordRe(["studies show", "research shows", "research has shown", "scientists have proven", "experts say", "studies have shown", "nghiên cứu cho thấy", "các nhà khoa học đã chứng minh", "các chuyên gia cho rằng", "theo nghiên cứu"]),
         specificAttr: /[A-Z][\p{L}]+(?:\s+[A-Z][\p{L}]+)*\s+(?:\(|in\s+|vào\s+năm\s+|năm\s+)?(?:19|20)\d{2}\)?/u,
@@ -2306,7 +2295,6 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
               fallacies: fall,
               refNotes: notes,
               aiFailed: !ai,
-              scholarQuery: buildScholarQuery(c.text, domain, textLang),
               domain,
             };
           });
@@ -2405,8 +2393,6 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
         const ui = STATUS_UI[status];
         const id = `chunk-${index}`;
         const risk = Math.round(item.riskScore ?? 50);
-        const q = encodeURIComponent(item.scholarQuery || item.segment);
-        const fc = encodeURIComponent(item.segment.slice(0, 200));
         const fallTxt = (item.fallacies || []).map((f) => `<b>${esc(fallName(t, f))}</b>${fallNote(t, f) ? " — " + esc(fallNote(t, f)) : ""}`).join("<br>");
         const evidence = item.aiFailed ? esc(t.aiMissing) : list(item.evidenceReasons);
         return `
@@ -2429,10 +2415,6 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
               <button type="button" class="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors" onclick="event.stopPropagation(); window.toggleCardDetail('${id}')">
                 <span class="material-icons-round text-[15px] detail-chevron" id="chevron-${id}">expand_more</span><span id="detail-label-${id}">${esc(t.toggleDetailsOpen)}</span>
               </button>
-              <span class="flex items-center gap-2">
-                <a href="https://scholar.google.com/scholar?q=${q}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 text-[10.5px] font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400" title="${esc(t.scholarButton)}"><span class="material-icons-round text-[13px]">school</span>Scholar ↗</a>
-                <a href="https://toolbox.google.com/factcheck/explorer/search/${fc}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 text-[10.5px] font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400" title="${esc(t.cardFactchecksTip)}"><span class="material-icons-round text-[13px]">fact_check</span>${esc(t.cardFactchecks)} ↗</a>
-              </span>
             </div>
             <div id="detail-${id}" class="hidden flex-col gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/60">
               ${box("emerald", "science", `${esc(t.evidenceHeading)} · ${esc(item.evidenceQuality || "medium")}`, evidence)}
