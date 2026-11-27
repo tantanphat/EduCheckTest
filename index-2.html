@@ -2548,6 +2548,7 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
 
         stateScanning.classList.add("hidden");
         stateScanning.classList.remove("flex");
+        stateIntro.classList.add("hidden"); // give the results the full panel height (key stays in apiKeyInput)
         stateResults.classList.remove("hidden");
         stateResults.classList.add("flex");
         isScanning = false;
