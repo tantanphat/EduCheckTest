@@ -210,19 +210,6 @@
         to { opacity: 1; transform: translateX(0); }
       }
 
-      .pipeline-step {
-        transition: all 0.25s ease;
-      }
-      .pipeline-step.active {
-        background: rgba(99, 102, 241, 0.2);
-        border-color: #818cf8;
-        box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
-      }
-      .pipeline-step.done {
-        background: rgba(16, 185, 129, 0.15);
-        border-color: #10b981;
-      }
-
       /* Sidebar item hover and active styling */
       .sidebar-item {
         transition: all 0.18s ease;
@@ -449,47 +436,6 @@
                 spellcheck="false"
                 title="Analysis Results (Read-only)"
               ></div>
-            </div>
-
-            <!-- Pipeline -->
-            <div id="pipeline-status" class="hidden w-full mt-3 sm:mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800">
-              <div class="flex items-center justify-between mb-2 text-xs">
-                <div class="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
-                  <span class="material-icons-round text-[16px] text-indigo-500 animate-pulse">hourglass_top</span>
-                  <span id="pipeline-header-title">Multi-Layer Critical Thinking Pipeline</span>
-                </div>
-                <span id="pipeline-step-label" class="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">Initializing...</span>
-              </div>
-
-              <!-- Responsive Pipeline Steps (3 cols on mobile, 6 on desktop) -->
-              <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 py-1">
-                <div class="pipeline-step active flex flex-col items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-[10px] font-bold text-center" data-step="0">
-                  <span class="step-icon material-icons-round text-[15px] mb-0.5">architecture</span>
-                  <span class="step-name">Structure</span>
-                </div>
-                <div class="pipeline-step flex flex-col items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-[10px] font-bold opacity-50 text-center" data-step="1">
-                  <span class="step-icon material-icons-round text-[15px] mb-0.5">content_cut</span>
-                  <span class="step-name">Deconstruct</span>
-                </div>
-                <div class="pipeline-step flex flex-col items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-[10px] font-bold opacity-50 text-center" data-step="2">
-                  <span class="step-icon material-icons-round text-[15px] mb-0.5">tune</span>
-                  <span class="step-name">Optimize</span>
-                </div>
-                <div class="pipeline-step flex flex-col items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-[10px] font-bold opacity-50 text-center" data-step="3">
-                  <span class="step-icon material-icons-round text-[15px] mb-0.5">psychology</span>
-                  <span class="step-name">Fallacy Check</span>
-                </div>
-                <div class="pipeline-step flex flex-col items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-[10px] font-bold opacity-50 text-center" data-step="4">
-                  <span class="step-icon material-icons-round text-[15px] mb-0.5">smart_toy</span>
-                  <span class="step-name">AI Panel</span>
-                </div>
-                <div class="pipeline-step flex flex-col items-center justify-center p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-[10px] font-bold opacity-50 text-center" data-step="5">
-                  <span class="step-icon material-icons-round text-[15px] mb-0.5">assessment</span>
-                  <span class="step-name">Report</span>
-                </div>
-              </div>
-
-              <div id="pipeline-detail" class="mt-2 text-[11px] font-mono text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-900/70 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 whitespace-pre-wrap leading-relaxed min-h-[38px]"></div>
             </div>
 
             <!-- Stream Preview -->
@@ -956,8 +902,6 @@
           editorHint: "Chế độ xem tương tác",
           inputPlaceholder: "Dán văn bản cần kiểm chứng tại đây... (Ctrl + Enter để phân tích)",
           searchPlaceholder: "Tìm kiếm...",
-          pipelineHeader: "Pipeline phản biện đa lớp",
-          stepNames: ["Cấu trúc", "Luận điểm", "Trích dẫn", "Kiểm tra nội bộ", "AI", "Tổng hợp"],
           btnScan: "Phân tích với EduCheck",
           btnScanAnalyzing: "Đang phân tích...",
           bottomPrivacy: "Văn bản chỉ được gửi tới Google Gemini (và DOI tới Crossref). API key và lịch sử chỉ nằm trong trình duyệt này.",
@@ -1032,18 +976,6 @@
           defaultRec: "Hãy đối chiếu với nguồn gốc.",
           // pipeline messages
           pipe: {
-            structure: "Đo cấu trúc, văn phong, độ dễ đọc...",
-            structureDone: (w, s, d, l) => `${w} từ · ${s} câu · lĩnh vực: ${d} · ngôn ngữ: ${l}`,
-            claims: "Tách luận điểm và phân loại...",
-            claimsDone: (n, k, tr, max) => `${n} luận điểm · ${k} đáng kiểm chứng${tr ? ` (phân tích ${max} đầu tiên)` : ""}`,
-            refs: "Trích xuất tài liệu tham khảo...",
-            refsCross: "Trích xuất tài liệu tham khảo và xác minh DOI trên Crossref...",
-            refsDone: (n, v, nf) => `${n} tài liệu · ${v} đã xác minh · ${nf} không tìm thấy`,
-            local: "Chạy kiểm tra nội bộ (ngụy biện, ảo giác)...",
-            ai: (n) => `Hội đồng Gemini đang phân tích (${n} lô)...`,
-            aiProgress: (d, n) => `AI: ${d}/${n} lô hoàn tất`,
-            combine: "Tổng hợp tất cả tín hiệu thành điểm số...",
-            done: "Hoàn tất.",
             executing: "Đang chạy pipeline...",
             processing: "Đang xử lý luận điểm...",
             complete: (n) => `Hoàn tất ${n} luận điểm.`,
@@ -1145,8 +1077,6 @@
           editorHint: "Interactive Mode",
           inputPlaceholder: "Paste the text you want to verify here... (Ctrl + Enter to analyze)",
           searchPlaceholder: "Search...",
-          pipelineHeader: "Multi-Layer Critical Thinking Pipeline",
-          stepNames: ["Structure", "Claims", "References", "Local Checks", "AI", "Synthesis"],
           btnScan: "Analyze with EduCheck",
           btnScanAnalyzing: "Analyzing...",
           bottomPrivacy: "Your text is sent only to Google Gemini (DOIs go to Crossref). Your API key and history stay in this browser.",
@@ -1216,18 +1146,6 @@
           aiMissing: "AI analysis unavailable for this claim.",
           defaultRec: "Verify against primary sources.",
           pipe: {
-            structure: "Measuring structure, style and readability...",
-            structureDone: (w, s, d, l) => `${w} words · ${s} sentences · domain: ${d} · language: ${l}`,
-            claims: "Splitting into claims and classifying them...",
-            claimsDone: (n, k, tr, max) => `${n} claims · ${k} check-worthy${tr ? ` (first ${max} analysed)` : ""}`,
-            refs: "Extracting citations...",
-            refsCross: "Extracting citations and verifying DOIs on Crossref...",
-            refsDone: (n, v, nf) => `${n} references · ${v} verified · ${nf} not found`,
-            local: "Running local fallacy and hallucination heuristics...",
-            ai: (n) => `Gemini critical-thinking panel (${n} batch${n > 1 ? "es" : ""})...`,
-            aiProgress: (d, n) => `AI panel: ${d}/${n} batches complete`,
-            combine: "Combining all signals into a score...",
-            done: "Synthesis complete.",
             executing: "Executing pipeline...",
             processing: "Processing claims...",
             complete: (n) => `Complete — ${n} claims.`,
@@ -1406,9 +1324,6 @@
       const apiKeyInput = document.getElementById("gemini-key");
       const errorDetail = document.getElementById("api-error-detail");
       const charCount = document.getElementById("char-count");
-      const pipelineStatus = document.getElementById("pipeline-status");
-      const pipelineDetail = document.getElementById("pipeline-detail");
-      const pipelineStepLabel = document.getElementById("pipeline-step-label");
       const themeToggleBtn = document.getElementById("themeToggleBtn");
       const themeIcon = document.getElementById("theme-icon");
       const btnToggleKeyVis = document.getElementById("btn-toggle-key-vis");
@@ -1717,7 +1632,6 @@
         isScanning = false;
 
         document.getElementById("stream-preview-wrapper").classList.add("hidden");
-        pipelineStatus.classList.add("hidden");
         updateCharCount();
         renderSidebarHistory();
         aiInput.focus();
@@ -1797,7 +1711,7 @@
         "badge-copilot": "badgeCopilot", "settings-modal-title": "settingsModalTitle", "label-storage-title": "labelStorageTitle",
         "label-storage-desc": "labelStorageDesc", "label-total-sessions-saved": "labelTotalSessions", "label-manage-history": "labelManageHistory",
         "label-clear-all-hist-btn": "labelClearAllBtn", "btn-save-settings": "closeBtn", "banner-title": "bannerTitle", "banner-desc": "bannerDesc",
-        "canvas-status-label": "canvasStatus", "label-editor-hint": "editorHint", "pipeline-header-title": "pipelineHeader",
+        "canvas-status-label": "canvasStatus", "label-editor-hint": "editorHint", 
         "bottom-privacy-label": "bottomPrivacy", "panel-title": "panelTitle", "panel-subtitle": "panelSubtitle", "api-card-title": "apiTitle",
         "api-card-desc": "apiDesc", "link-get-key": "getKeyFree", "ready-card-title": "readyTitle", "ready-card-desc": "readyDesc",
         "scanning-header-label": "scanningHeader", "label-abort": "labelAbort", "results-headline": "resultsHeadline", "label-reset": "labelReset",
@@ -1825,7 +1739,6 @@
         apiKeyInput.placeholder = t.apiKeyPlaceholder;
         document.getElementById("lang-label").innerText = currentLang.toUpperCase();
         btnScanLabel.innerText = isScanning ? t.btnScanAnalyzing : t.btnScan;
-        document.querySelectorAll(".pipeline-step .step-name").forEach((el, i) => { if (t.stepNames[i]) el.innerText = t.stepNames[i]; });
         updateCharCount();
         renderSidebarHistory();
         if (analysisCompleted && currentResults.length) {
@@ -1905,24 +1818,6 @@
         btnScanLabel.innerText = i18n[currentLang].btnScan;
         isScanning = false;
         document.getElementById("stream-preview-wrapper").classList.add("hidden");
-        pipelineStatus.classList.add("hidden");
-      }
-
-      function updatePipelineStep(stepIndex, label, detail) {
-        const steps = document.querySelectorAll(".pipeline-step");
-        steps.forEach((el, i) => {
-          el.classList.remove("active", "done");
-          el.classList.remove("opacity-50");
-          if (i < stepIndex) {
-            el.classList.add("done");
-          } else if (i === stepIndex) {
-            el.classList.add("active");
-          } else {
-            el.classList.add("opacity-50");
-          }
-        });
-        pipelineStepLabel.textContent = label;
-        pipelineDetail.textContent = detail || "";
       }
 
       function sleep(ms) {
@@ -2323,41 +2218,33 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
       async function runPipeline(text, apiKey, signal, onComplete, onError) {
         try {
           const t = i18n[currentLang];
-          const P = t.pipe;
           const opts = getOpts();
           const textLang = detectLanguage(text); // language of the user's text (segmentation / style heuristics)
           const outLang = currentLang; // language of every message shown to the user
           const warnings = [];
 
           // 1. structure
-          updatePipelineStep(0, t.stepNames[0], P.structure);
           await sleep(30);
           const claimTexts = extractClaims(text, textLang);
           const stats = analyzeTextStructure(text, textLang, claimTexts);
           const localAi = localAiLikelihood(stats);
           const domain = detectDomain(text);
-          pipelineDetail.textContent = P.structureDone(stats.words, stats.sentences, domain, textLang.toUpperCase());
           abortCheck(signal);
 
           // 2. claims
-          updatePipelineStep(1, t.stepNames[1], P.claims);
           const truncated = claimTexts.length > MAX_CLAIMS;
           const claims = claimTexts.slice(0, MAX_CLAIMS).map((c, i) => ({ id: i + 1, text: c, ...classifyClaim(c) }));
-          pipelineDetail.textContent = P.claimsDone(claims.length, claims.filter((c) => c.checkScore >= 50).length, truncated, MAX_CLAIMS);
           await sleep(30);
           abortCheck(signal);
 
           // 3. references
-          updatePipelineStep(2, t.stepNames[2], opts.crossref ? P.refsCross : P.refs);
           const refs = extractReferences(text);
           if (opts.crossref && refs.some((r) => r.type === "doi")) await verifyDois(refs, signal);
           else refs.filter((r) => r.type === "doi").forEach((r) => (r.status = "unchecked"));
           abortCheck(signal);
-          pipelineDetail.textContent = P.refsDone(refs.length, refs.filter((r) => r.status === "verified").length, refs.filter((r) => r.status === "not_found").length);
           const refMeta = refs.filter((r) => r.meta).map((r) => ({ doi: r.doi, title: r.meta.title, journal: r.meta.journal, year: r.meta.year }));
 
           // 4. local checks
-          updatePipelineStep(3, t.stepNames[3], P.local);
           claims.forEach((c) => {
             c.hallucinationPatterns = detectHallucinationPatterns(c.text);
             c.localFallacies = detectFallacies(c.text);
@@ -2369,7 +2256,6 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
           // 5. AI panel
           const chunks = [];
           for (let i = 0; i < claims.length; i += AI_CHUNK) chunks.push(claims.slice(i, i + AI_CHUNK));
-          updatePipelineStep(4, t.stepNames[4], P.ai(chunks.length));
           let overallAi = null;
           let aiOk = 0;
           let done = 0;
@@ -2385,13 +2271,11 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
               if (/Invalid API key/i.test(e.message)) throw e;
               warnings.push({ k: "ai", n: idx + 1, m: e.message });
             }
-            pipelineDetail.textContent = P.aiProgress(++done, chunks.length);
           });
           if (aiOk === 0) throw new Error(warnings[0] ? warnings[0].m : "AI analysis failed.");
           abortCheck(signal);
 
           // 6. combine
-          updatePipelineStep(5, t.stepNames[5], P.combine);
           const results = claims.map((c) => {
             const ai = aiById.get(c.id);
             let risk = typeof ai?.risk_score === "number" ? clamp(ai.risk_score, 0, 100) : 50;
@@ -2439,15 +2323,14 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
             lang: textLang, outLang, domain, stats, trust, truncated, warnings,
             verdictKey: trust >= 75 ? "good" : trust >= 50 ? "mixed" : "bad",
             ai: { local: localAi.score, llm: llmAi, final: aiFinal, reliable: localAi.reliable, localSignals: localAi.signals, signals: (overallAi?.ai_signals || []).slice(0, 4) },
+            refs: refs.map(({ type, raw, doi, status, meta }) => ({ type, raw, doi, status, meta })),
             summary: overallAi?.summary || "",
             mainArgument: overallAi?.main_argument || "",
             strengths: overallAi?.strengths || [],
             weaknesses: overallAi?.weaknesses || [],
-            refs: refs.map(({ type, raw, doi, status, meta }) => ({ type, raw, doi, status, meta })),
             typeCounts,
             options: opts,
           };
-          pipelineDetail.textContent = P.done;
           onComplete(results, overview, domain);
         } catch (err) {
           if (err && err.name === "AbortError") return;
@@ -2673,7 +2556,6 @@ ${withOverall ? "Also return 'overall': ai_likelihood (0-100 probability the who
         btnScanLabel.innerText = t.btnScan;
         hideApiError();
         updateCharCount();
-        pipelineStatus.classList.add("hidden");
         analysisCompleted = true;
         applyFilter(currentFilter);
         updateRefsBadge();
@@ -3204,7 +3086,6 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
         btnScan.disabled = true;
         btnScanLabel.innerText = t.btnScanAnalyzing;
         isScanning = true;
-        pipelineStatus.classList.remove("hidden");
         streamPreview.textContent = t.pipe.executing;
         streamPreview2.textContent = t.pipe.processing;
         document.getElementById("stream-preview-wrapper").classList.remove("hidden");
@@ -3266,7 +3147,6 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
         btnScanLabel.innerText = i18n[currentLang].btnScan;
         isScanning = false;
         document.getElementById("stream-preview-wrapper").classList.add("hidden");
-        pipelineStatus.classList.add("hidden");
         hideApiError();
         focusedId = null;
         analysisCompleted = false;
@@ -3380,7 +3260,6 @@ Return JSON: rewritten (the full rewritten document, plain text with paragraph b
           if (currentAbort) currentAbort.abort();
           resetUI();
           hideApiError();
-          pipelineStatus.classList.add("hidden");
         }
       });
 
